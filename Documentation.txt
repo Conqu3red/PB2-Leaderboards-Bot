@@ -1,0 +1,35 @@
+-position <level> <user> [unbreaking]
+
+Description: Position will only return ranks if the requested user is in the top 1000 for the requested level.
+
+Parameters are indicated with <angle brackets> for required fields and [square brackets] for optional fields.
+
+Parameters:
+- <Level> Required |  The campaign level number for the level being requested. Example: 1-2c for world 1, level 2, challenge
+- <User> Required |  The user name in game for the user being requested.  Example: Bolt986
+- [Unbreaking] Optional |  Indicates if you want unbreaking only, or overall leaderboard:  Example: yes
+    - Valid Values: [yes],[no],[nobreaks]
+    
+Examples:
+-position 1-2c Bolt986
+    - Returns rank and budget for Bolt986 for challenge level 1-2
+-position 4-2 Bolt986 nobreaks
+    - Returns rank and budget for Bolt986 for the unbreaking leaderboard for level 4-2
+
+
+
+
+-top <level> [unbreaking] [offset]
+
+Description: Top will return the top 12 for the specified level, offsetted by the optional offset parameter.
+
+Parameters are indicated with <angle brackets> for required fields and [square brackets] for optional fields.
+
+Parameters:
+- <Level> Required |  The campaign level number for the level being requested. Example: 1-2c for world 1, level 2, challenge
+- [Unbreaking] Optional |  Indicates if you want unbreaking only, or overall leaderboard:  Example: yes
+    - Valid Values: [yes],[no],[nobreaks]
+- [Offset] Optional |  Indicates the offset to be applied:  Example: 4
+	- Notes:
+		By default the top command shows positions 1 - 12, the offset applies an offset to this number. for example offset - offset+12, ie with an offset of 4 you will see positions 4-12
+    - Valid Values: Numbers between 0 and 1000
