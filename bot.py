@@ -158,7 +158,7 @@ for c in range(2):
 	for world in range(5):
 		for level in range(16):
 			levels.append(f"{world+1}-{level+1}{'c' if c == 1 else ''}")
-for level in range(16):
+for level in range(10): # Only 10 levels in world 6
 	levels.append(f"6-{level+1}")
 #print(levels)
 
@@ -210,7 +210,25 @@ def parse_price_input(price):
 def get_rank(leaderboard_id, price, unbroken):
 	pass
 
-def get_global_leaderboard(unbroken):
+def get_global_leaderboard(unbroken,level_type="all"):
+	# level_type = all , regular , challenge
+	levels = []
+	if level_type == "all":
+		loop = 2
+	else:
+		loop = 1
+	for c in range(loop):
+		for world in range(5):
+			for level in range(16):
+				if level_type == "all":
+					levels.append(f"{world+1}-{level+1}{('c' if c == 1 else '')}")
+				elif level_type == "regular":
+					levels.append(f"{world+1}-{level+1}")
+				elif level_type == "challenge":
+					levels.append(f"{world+1}-{level+1}c")
+	if level_type != "challenge":
+		for level in range(10): # Only 10 levels in world 6
+			levels.append(f"6-{level+1}")
 	with open("rank_to_score.txt","r") as rank_to_score:
 		rank_to_score = rank_to_score.read().split("\n") # Load rank to points scaling into a list
 	leaderboard = {}
@@ -218,7 +236,6 @@ def get_global_leaderboard(unbroken):
 	referer = "any"
 	if unbroken:
 		referer = "unbroken"
-	global levels
 	for level in levels:
 		#print(level)
 		leaderboard_id = get_level_id(level) # get leaderboard id level
@@ -416,7 +433,13 @@ async def milestones(ctx, level, unbreaking="no"):
 	)
 
 @bot.command(name='globaltop',help='Get Global Leaderboard')
-async def globaltop(ctx, unbreaking="no"):
+async def globaltop(ctx, level_type="all", unbreaking="no"):
+	nobreaks = False
+	if unbreaking.lower() in ["nobreaks", "yes"]:
+		nobreaks = True
+	level_type = level_type.lower()
+	if level_type not in ["all", "regular", "challenge"]:
+		level_type = "all"
 	nobreaks = False
 	if unbreaking.lower() in ["nobreaks", "yes"]:
 		nobreaks = True
@@ -426,7 +449,7 @@ async def globaltop(ctx, unbreaking="no"):
 			colour=discord.Colour(0x3b12ef)
 			)
 		)
-	global_leaderboard,id_to_display_names = get_global_leaderboard(nobreaks)
+	global_leaderboard,id_to_display_names = get_global_leaderboard(nobreaks,level_type)
 	
 	embed = discord.Embed(
 			title=f"Global Leaderboard:",
