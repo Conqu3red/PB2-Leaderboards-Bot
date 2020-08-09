@@ -28,7 +28,7 @@ identifiers = {
 "3c": ["Vezab", "Arl3V", "bdarA", "A5GZV", "bqYMb", "AGDon", "ApQ9n", "ApQ2n", "AgrJb", "bdaqA", "Agrrb", "b7lxA", "bmK2n", "Vl5Rb", "bOpmA", "nRM7A"],   #World 3c
 "4c": ["b7ljA", "bOpaA", "Aa5OA", "VwMpA", "A0ZaV", "bqYob", "A5GJV", "b3WDb", "nXZzb", "nRM8A", "AGD6n", "AB19b", "Vez1b", "bmK9n", "AoqpV", "Vl5gb"],   #World 4c
 "5c": ["VJGKB","AgrJr","ApQj2","V6BRD","nLar9","bx3E5","VzJ2G","nQm4e","bdaJr","Av8NP","bNdLo","b2Z5w","ArdM3","V45eQ","VPeKo","b8zGP"],   #World 5c :)
-"6": ['bm2OL', 'A5XOx', 'bOeMR', 'VeDY5', 'Vl2Wp', 'nR5Re', 'b7WRR', 'AGvLD', 'bqe7e', 'AaE79', 'b3Y34', 'nXvLa', 'ABND7', 'Vwa8y', 'A0QrO', 'Aor26']	#Secret World :)
+"6": ["bOeMR","A5XOx","nR5Re","bm2OL","b7WRR","Vl2Wp","VeDY5","AGvLD","AaE79","bqe7e", 'b3Y34', 'nXvLa', 'ABND7', 'Vwa8y', 'A0QrO', 'Aor26']	#Secret World :)
 }
 
 def get_level_id(shorthand_levelname):
