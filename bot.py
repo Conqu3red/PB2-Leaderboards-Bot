@@ -10,6 +10,7 @@ import discord
 from tabulate import tabulate
 from discord.ext import commands
 from discord.ext import menus
+from discord.ext import flags
 from dotenv import load_dotenv
 BUCKET_URL = "https://dfp529wcvahka.cloudfront.net/manifests/leaderboards/buckets/collated.json"
 INVALID_LEVEL_TEXT = "Invalid Level."
@@ -259,20 +260,45 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 
 bot = commands.Bot(command_prefix='-')
 
-@bot.command(name='top',help='Get top leaderboard for a level\nAppend nobreaks to remove results with breaks')
+@flags.add_flag("--unbreaking", type=bool, default=False)
+@flags.add_flag("--position", type=int, default=0)
+@flags.add_flag("--user", type=str)
+@flags.add_flag("--price")
 
-async def top(ctx, level, unbreaking="no",offset=0):
-	offset = int(offset)-1
-	if offset < 0 or offset > 1000-NUMBER_TO_SHOW_TOP:
-		offset = 0
-	nobreaks = False
-	if unbreaking.lower() in ["nobreaks", "yes"]:
-		nobreaks = True
+@flags.command(name='leaderboard', pass_context=True,aliases=["lb"],help='Get top leaderboard for a level\nAppend nobreaks to remove results with breaks')
+
+async def leaderboard(ctx, level, **flags):
+	#flags["position"] += -1
+	if flags["position"] < 0 or flags["position"] > 1000-NUMBER_TO_SHOW_TOP:
+		flags["position"] = 0
+	offset = flags["position"]
 	level_id = get_level_id(level)
-	if level_id != INVALID_LEVEL_TEXT:
-		lb = get_top(level_id, nobreaks)
+	if flags["user"] != None: # Position Command
+		await position(ctx, level, **flags)
+	
+	elif level_id != INVALID_LEVEL_TEXT: # Top command
+		lb = get_top(level_id, flags["unbreaking"])
+
+		if flags["price"] != None and flags["position"] == 0:
+			price = parse_price_input(flags["price"])
+			offset = 0
+			prev = 0
+			for c,entry in enumerate(lb):
+				if prev <= price and entry["value"] >= price:
+					offset = c
+					break
+				prev = entry["value"]
+		else: # Calculate offset based on passed position and ties
+			prev = 0
+			for c,entry in enumerate(lb):
+				if prev <= offset and entry["rank"] >= offset:
+					offset = c
+					break
+				if entry["rank"] != prev:
+					prev = entry["rank"]
+
 		embed = discord.Embed(
-			title=f"{level}: Positions #{offset+1} -> #{offset+NUMBER_TO_SHOW_TOP}",
+			title=f"{level}: Positions #{lb[offset]['rank']} -> #{lb[offset-1+NUMBER_TO_SHOW_TOP]['rank']}",
 			colour=discord.Colour(0x3b12ef),
 			timestamp=datetime.datetime.utcfromtimestamp(refresh_data(level_id)) # or any other datetime type format.
 		)
@@ -284,6 +310,7 @@ async def top(ctx, level, unbreaking="no",offset=0):
 		embed.set_footer(
 			text=f"cached leaderboards for {level} last updated",
 		)
+		
 		for entry in lb[offset:offset+NUMBER_TO_SHOW_TOP]:
 			embed.add_field(
 				name=f"{entry['rank']}: {entry['display_name']}",
@@ -295,15 +322,14 @@ async def top(ctx, level, unbreaking="no",offset=0):
 		)
 	else:
 		await ctx.send(f"```An Error Occured: {INVALID_LEVEL_TEXT}```")
+bot.add_command(leaderboard)
 
+#@bot.command(name='position', pass_context=True,help='Get the position of a specific user on a certain level')
 
-@bot.command(name='position',help='Get the position of a specific user on a certain level')
-
-async def position(ctx, level, user, unbreaking="no"):
-	nobreaks = False
+async def position(ctx, level, **flags):
+	nobreaks = flags["unbreaking"]
+	user = flags["user"]
 	error = {"occurred":False,"detail":""}
-	if unbreaking.lower() in ["nobreaks", "yes"]:
-		nobreaks = True
 	level_id = get_level_id(level)
 	embed = discord.Embed(
 		title=f"{level}: {user}",
