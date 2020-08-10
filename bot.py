@@ -1,6 +1,6 @@
 import requests
 import _thread
-from datetime import *
+import datetime
 import time
 import os
 import asyncio
@@ -274,7 +274,7 @@ async def top(ctx, level, unbreaking="no",offset=0):
 		embed = discord.Embed(
 			title=f"{level}: Positions #{offset+1} -> #{offset+NUMBER_TO_SHOW_TOP}",
 			colour=discord.Colour(0x3b12ef),
-			timestamp=datetime.utcfromtimestamp(refresh_data(level_id)) # or any other datetime type format.
+			timestamp=datetime.datetime.utcfromtimestamp(refresh_data(level_id)) # or any other datetime type format.
 		)
 		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
 		embed.set_author(
@@ -308,7 +308,7 @@ async def position(ctx, level, user, unbreaking="no"):
 	embed = discord.Embed(
 		title=f"{level}: {user}",
 		colour=discord.Colour(0x3b12ef),
-		timestamp=datetime.utcfromtimestamp(refresh_data(level_id)) # or any other datetime type format.
+		timestamp=datetime.datetime.utcfromtimestamp(refresh_data(level_id)) # or any other datetime type format.
 	)
 	#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
 	embed.set_author(
@@ -378,7 +378,7 @@ class ProfileViewer(menus.ListPageSource):
 		embed = discord.Embed(
 			title=f"Profile for: {entries[0]['owner']}",
 			colour=discord.Colour(0x3b12ef),
-			timestamp=datetime.now() # or any other datetime type format.
+			timestamp=datetime.datetime.now() # or any other datetime type format.
 		)
 		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
 		embed.set_author(
@@ -413,7 +413,7 @@ async def milestones(ctx, level, unbreaking="no"):
 	embed = discord.Embed(
 		title=f"Milestones for {level}",
 		colour=discord.Colour(0x3b12ef),
-		timestamp=datetime.utcfromtimestamp(refresh_bucket_collated()) # or any other datetime type format.
+		timestamp=datetime.datetime.utcfromtimestamp(refresh_bucket_collated()) # or any other datetime type format.
 	)
 	#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
 	embed.set_author(
@@ -433,7 +433,7 @@ async def milestones(ctx, level, unbreaking="no"):
 				value=f"Above #{milestone['endRank']} ({endValue})",
 				inline=True
 			)
-	await message.edit(
+	await ctx.send(
 		embed=embed
 	)
 
@@ -487,7 +487,7 @@ class GlobalLeaderboardViewer(menus.ListPageSource):
 		embed = discord.Embed(
 			title=f"Global Leaderboard",
 			colour=discord.Colour(0x3b12ef),
-			timestamp=datetime.now() # or any other datetime type format.
+			timestamp=datetime.datetime.now() # or any other datetime type format.
 		)
 		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
 		embed.set_author(
