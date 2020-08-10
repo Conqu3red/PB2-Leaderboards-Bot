@@ -268,6 +268,8 @@ bot = commands.Bot(command_prefix='-')
 @flags.command(name='leaderboard', pass_context=True,aliases=["lb"],help='Get top leaderboard for a level\nAppend nobreaks to remove results with breaks')
 
 async def leaderboard(ctx, level, **flags):
+
+	error = {"occurred":False,"detail":""}
 	#flags["position"] += -1
 	if flags["position"] < 0 or flags["position"] > 1000-NUMBER_TO_SHOW_TOP:
 		flags["position"] = 0
@@ -296,9 +298,18 @@ async def leaderboard(ctx, level, **flags):
 					break
 				if entry["rank"] != prev:
 					prev = entry["rank"]
-
+		if len(lb) > offset: # Catch Position Offsets for leaderboard places that don't exist
+			p1 = lb[offset]['rank']
+		else:
+			p1 = "NULL"
+		if len(lb) >= offset-1+NUMBER_TO_SHOW_TOP:
+			p2 = lb[offset-1+NUMBER_TO_SHOW_TOP]['rank']
+		else:
+			p2 = "NULL"
+		# Instead of Null, values should be resolved to 0, unless the leaderboard is empty
+		# Add catch for leaderboard having length of 0, in which case error
 		embed = discord.Embed(
-			title=f"{level}: Positions #{lb[offset]['rank']} -> #{lb[offset-1+NUMBER_TO_SHOW_TOP]['rank']}",
+			title=f"{level}: Positions #{p1} -> #{p2}",
 			colour=discord.Colour(0x3b12ef),
 			timestamp=datetime.datetime.utcfromtimestamp(refresh_data(level_id)) # or any other datetime type format.
 		)
@@ -317,11 +328,26 @@ async def leaderboard(ctx, level, **flags):
 				value=f"{entry['price']} {'(Breaks)' if entry['didBreak'] else ''}", # no breaking, so we don't say it broke
 				inline=True
 			)
-		await ctx.send(
-			embed=embed
-		)
 	else:
-		await ctx.send(f"```An Error Occured: {INVALID_LEVEL_TEXT}```")
+		error["occurred"] = True
+		error["detail"] = INVALID_LEVEL_TEXT
+	if error["occurred"]:
+		embed = discord.Embed(
+			title=f"An Error Occurred.",
+			colour=discord.Colour(0xff0000),
+		)
+		embed.set_author(
+			name="PB2 Leaderboards Bot", 
+			icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png"
+		)
+		embed.add_field(
+				name=f"Please see below for error info:",
+				value=error["detail"],
+				inline=True
+			)
+	await ctx.send(
+		embed=embed
+	)
 bot.add_command(leaderboard)
 
 #@bot.command(name='position', pass_context=True,help='Get the position of a specific user on a certain level')
