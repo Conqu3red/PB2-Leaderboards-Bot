@@ -1,4 +1,4 @@
-import time
+import time, datetime
 import os
 import json
 import requests
@@ -31,7 +31,8 @@ class CacheManager:
 				if item[1] > self.gap:
 					self.refresh_data(item[0])
 			self.get_all_files_last_refresh()
-			time.sleep(10000)
+			print(f"[CacheManager] Next File needs to be reloaded in {datetime.timedelta(seconds=int(max( self.gap - min(list(self.levels_last_refreshed.values())), 0)))}")
+			time.sleep( max( self.gap - min(list(self.levels_last_refreshed.values())) ,0)  )
 	def get_all_files_last_refresh(self,override=False):
 		global download_url
 		for world in identifiers.values():
