@@ -1,4 +1,5 @@
 import requests
+import _thread
 from datetime import *
 import time
 import os
@@ -14,6 +15,15 @@ BUCKET_URL = "https://dfp529wcvahka.cloudfront.net/manifests/leaderboards/bucket
 INVALID_LEVEL_TEXT = "Invalid Level."
 NOT_TOP1000_TEXT = "This User is not in the top 1000 for the specified level"
 NUMBER_TO_SHOW_TOP = 12
+
+
+# Initiate CacheManager.py thread
+
+from CacheManager import *
+
+_thread.start_new_thread( CacheManager, ())
+
+
 #print(os.path.getmtime("data/collated.json"))
 #print(time.time())
 download_url = "http://dfp529wcvahka.cloudfront.net/manifests/leaderboards/scores/{0}.json"
@@ -53,11 +63,6 @@ def refresh_data(leaderboard_id, override=False):
 	except FileNotFoundError:
 		cache_last_reloaded = 0
 		pass
-	if current_time - cache_last_reloaded > 28800 or override: # 8 hours
-		url = download_url.format(leaderboard_id)
-		r = requests.get(url)
-		with open(f"data/{leaderboard_id}.json", "wb") as cache_file:
-			cache_file.write(r.content)
 	return cache_last_reloaded
 
 

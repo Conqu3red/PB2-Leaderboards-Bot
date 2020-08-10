@@ -1,3 +1,4 @@
 Backups
 data/
 *.json
+*__pycache__
