@@ -501,18 +501,16 @@ async def milestones(ctx, level, unbreaking="no"):
 	await ctx.send(
 		embed=embed
 	)
+@flags.add_flag("--unbreaking", type=bool, default=False)
+@flags.add_flag("--type", type=str, default="all")
 
-@bot.command(name='globaltop',help='Get Global Leaderboard')
-async def globaltop(ctx, level_type="all", unbreaking="no"):
-	nobreaks = False
-	if unbreaking.lower() in ["nobreaks", "yes"]:
-		nobreaks = True
+@flags.command(name='globaltop',help='Get Global Leaderboard')
+async def globaltop(ctx, **flags):
+	level_type = flags["type"]
+	nobreaks = flags["unbreaking"]
 	level_type = level_type.lower()
 	if level_type not in ["all", "regular", "challenge"]:
 		level_type = "all"
-	nobreaks = False
-	if unbreaking.lower() in ["nobreaks", "yes"]:
-		nobreaks = True
 	message = await ctx.send(
 		embed = discord.Embed(
 			title=f"Downloading Leaderboards... This May take a while",
@@ -542,7 +540,7 @@ async def globaltop(ctx, level_type="all", unbreaking="no"):
 	pages = menus.MenuPages(source=GlobalLeaderboardViewer(lb), clear_reactions_after=True)
 	await pages.start(ctx)
 
-
+bot.add_command(globaltop)
 class GlobalLeaderboardViewer(menus.ListPageSource):
 	def __init__(self, data):
 		super().__init__(data, per_page=12)
