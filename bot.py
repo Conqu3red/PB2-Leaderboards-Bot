@@ -7,7 +7,6 @@ import asyncio
 import json
 import re
 import discord
-from tabulate import tabulate
 from discord.ext import commands
 from discord.ext import menus
 from discord.ext import flags
