@@ -298,18 +298,8 @@ async def leaderboard(ctx, level, **flags):
 					break
 				if entry["rank"] != prev:
 					prev = entry["rank"]
-		if len(lb) > offset: # Catch Position Offsets for leaderboard places that don't exist
-			p1 = lb[offset]['rank']
-		else:
-			p1 = "NULL"
-		if len(lb) >= offset-1+NUMBER_TO_SHOW_TOP:
-			p2 = lb[offset-1+NUMBER_TO_SHOW_TOP]['rank']
-		else:
-			p2 = "NULL"
-		# Instead of Null, values should be resolved to 0, unless the leaderboard is empty
-		# Add catch for leaderboard having length of 0, in which case error
 		embed = discord.Embed(
-			title=f"{level}: Positions #{p1} -> #{p2}",
+			title=f"Leaderboard for {level}:",
 			colour=discord.Colour(0x3b12ef),
 			timestamp=datetime.datetime.utcfromtimestamp(refresh_data(level_id)) # or any other datetime type format.
 		)
