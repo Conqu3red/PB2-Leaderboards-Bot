@@ -12,6 +12,7 @@ from discord.ext import commands
 from discord.ext import menus
 from discord.ext import flags
 from dotenv import load_dotenv
+import math
 BUCKET_URL = "https://dfp529wcvahka.cloudfront.net/manifests/leaderboards/buckets/collated.json"
 INVALID_LEVEL_TEXT = "Invalid Level."
 NOT_TOP1000_TEXT = "This User is not in the top 1000 for the specified level"
@@ -298,47 +299,69 @@ async def leaderboard(ctx, level, **flags):
 					break
 				if entry["rank"] != prev:
 					prev = entry["rank"]
-		embed = discord.Embed(
-			title=f"Leaderboard for {level}:",
-			colour=discord.Colour(0x3b12ef),
-			timestamp=datetime.datetime.utcfromtimestamp(refresh_data(level_id)) # or any other datetime type format.
-		)
-		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
-		embed.set_author(
-			name="PB2 Leaderboards Bot", 
-			icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png"
-		)
-		embed.set_footer(
-			text=f"cached leaderboards for {level} last updated",
-		)
-		
-		for entry in lb[offset:offset+NUMBER_TO_SHOW_TOP]:
-			embed.add_field(
-				name=f"{entry['rank']}: {entry['display_name']}",
-				value=f"{entry['price']} {'(Breaks)' if entry['didBreak'] else ''}", # no breaking, so we don't say it broke
-				inline=True
-			)
+		pages = menus.MenuPages(source=GeneralLeaderboardViewer(lb,level,offset,flags["unbreaking"], datetime.datetime.utcfromtimestamp(refresh_data(level_id))), clear_reactions_after=True)
+		await pages.start(ctx)
 	else:
 		error["occurred"] = True
 		error["detail"] = INVALID_LEVEL_TEXT
 	if error["occurred"]:
 		embed = discord.Embed(
 			title=f"An Error Occurred.",
+			description=error["detail"],
 			colour=discord.Colour(0xff0000),
 		)
+		await ctx.send(
+			embed=embed
+		)
+	
+bot.add_command(leaderboard)
+
+
+class GeneralLeaderboardViewer(menus.ListPageSource):
+	def __init__(self, data, level, offset, unbreaking, reload_time):
+		super().__init__(data, per_page=NUMBER_TO_SHOW_TOP)
+		self.level = level
+		self.offs = offset
+		self.unbreaking = unbreaking
+		self.data = data
+		self.reload_time = reload_time
+		self.first = True
+		# DOES NOT APPLY OFFSET!
+	async def format_page(self, menu, entries): # Entries is already a specific place
+		if self.first:
+			self.first = False
+			menu.current_page = math.floor(self.offs/NUMBER_TO_SHOW_TOP)
+			entries = self.data[(self.offs - self.offs % NUMBER_TO_SHOW_TOP):(self.offs - self.offs % NUMBER_TO_SHOW_TOP)+NUMBER_TO_SHOW_TOP]
+			
+		offset = (menu.current_page * self.per_page) + self.offs
+		embed = discord.Embed(
+			title=f"Leaderboard for {self.level} {'(Unbreaking)' if self.unbreaking else ''}",
+			colour=discord.Colour(0x3b12ef),
+			timestamp=self.reload_time # or any other datetime type format.
+		)
+		embed.set_footer(
+			text=f"cached leaderboards for {self.level} last updated",
+		)
+		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
 		embed.set_author(
 			name="PB2 Leaderboards Bot", 
 			icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png"
 		)
-		embed.add_field(
-				name=f"Please see below for error info:",
-				value=error["detail"],
+		for entry in entries:
+			embed.add_field(
+				name=f"{entry['rank']}: {entry['display_name']}",
+				value=f"{entry['price']} {'(Breaks)' if entry['didBreak'] else ''}", # no breaking, so we don't say it broke
 				inline=True
 			)
-	await ctx.send(
-		embed=embed
-	)
-bot.add_command(leaderboard)
+		#return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
+		return embed
+
+
+
+
+
+
+
 
 #@bot.command(name='position', pass_context=True,help='Get the position of a specific user on a certain level')
 
@@ -549,7 +572,7 @@ class GlobalLeaderboardViewer(menus.ListPageSource):
 @bot.event
 async def on_command_error(ctx, error):
 
-	send_help = (commands.MissingRequiredArgument, commands.BadArgument, commands.TooManyArguments, commands.UserInputError)
+	send_help = (commands.MissingRequiredArgument, commands.BadArgument, commands.TooManyArguments, commands.UserInputError, flags._parser.ArgumentParsingError)
 
 	if isinstance(error, commands.CommandNotFound):  # fails silently
 		#await ctx.send("```Invalid Command.```")
@@ -575,4 +598,5 @@ async def send_cmd_help(ctx):
 	em.color = discord.Color.green()
 	em.description = cmd.help
 	return em
+
 bot.run(TOKEN)
