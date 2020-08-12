@@ -2,3 +2,4 @@ Backups
 data/
 *.json
 *__pycache__
+data/*.json

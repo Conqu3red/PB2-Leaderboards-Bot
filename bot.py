@@ -410,12 +410,10 @@ class ProfileViewer(menus.ListPageSource):
 		return embed
 
 
-
-@bot.command(name='milestones',help='Get Milestones for a given level')
-async def milestones(ctx, level, unbreaking="no"):
-	nobreaks = False
-	if unbreaking.lower() in ["nobreaks", "yes"]:
-		nobreaks = True
+@flags.add_flag("--unbreaking", type=bool, default=False)
+@flags.command(name='milestones',help='Get Milestones for a given level')
+async def milestones(ctx, level, **flags):
+	nobreaks = flags["unbreaking"]
 	level_id = get_level_id(level)
 	milestones = get_milestones(level_id, nobreaks)
 	embed = discord.Embed(
@@ -444,6 +442,8 @@ async def milestones(ctx, level, unbreaking="no"):
 	await ctx.send(
 		embed=embed
 	)
+
+bot.add_command(milestones)
 @flags.add_flag("--unbreaking", type=bool, default=False)
 @flags.add_flag("--type", type=str, default="all")
 
