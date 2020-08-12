@@ -265,7 +265,7 @@ bot = commands.Bot(command_prefix='-')
 @flags.add_flag("--user", type=str)
 @flags.add_flag("--price")
 
-@flags.command(name='leaderboard', pass_context=True,aliases=["lb"],help='Get top leaderboard for a level\nAppend nobreaks to remove results with breaks')
+@flags.command(name='leaderboard', pass_context=True,aliases=["lb"],help='Get top leaderboard for a level\n ADD DOCUMENTATION HERE')
 
 async def leaderboard(ctx, level, **flags):
 
@@ -275,13 +275,16 @@ async def leaderboard(ctx, level, **flags):
 		flags["position"] = 0
 	offset = flags["position"]
 	level_id = get_level_id(level)
-	if flags["user"] != None: # Position Command
-		await position(ctx, level, **flags)
 	
-	elif level_id != INVALID_LEVEL_TEXT: # Top command
-		lb = get_top(level_id, flags["unbreaking"])
+	if level_id != INVALID_LEVEL_TEXT: # Top command
 
-		if flags["price"] != None and flags["position"] == 0:
+		lb = get_top(level_id, flags["unbreaking"])
+		if flags["user"] != None and flags["price"] == None and flags["position"] == 0: # Position Command
+			for pos,score in enumerate(lb):
+				if score['display_name'] == flags["user"]:
+					offset = pos
+					break
+		elif flags["price"] != None and flags["position"] == 0 and flags["user"] == None:
 			price = parse_price_input(flags["price"])
 			offset = 0
 			prev = 0
@@ -357,65 +360,6 @@ class GeneralLeaderboardViewer(menus.ListPageSource):
 
 
 
-
-
-
-
-
-#@bot.command(name='position', pass_context=True,help='Get the position of a specific user on a certain level')
-
-async def position(ctx, level, **flags):
-	nobreaks = flags["unbreaking"]
-	user = flags["user"]
-	error = {"occurred":False,"detail":""}
-	level_id = get_level_id(level)
-	embed = discord.Embed(
-		title=f"{level}: {user}",
-		colour=discord.Colour(0x3b12ef),
-		timestamp=datetime.datetime.utcfromtimestamp(refresh_data(level_id)) # or any other datetime type format.
-	)
-	#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
-	embed.set_author(
-		name="PB2 Leaderboards Bot", 
-		icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png"
-	)
-	embed.set_footer(
-		text=f"cached leaderboards for {level} last updated",
-	)
-	if level_id != INVALID_LEVEL_TEXT:
-		lb = find_user(level_id, user, nobreaks)
-		
-		if lb != NOT_TOP1000_TEXT:
-			
-			embed.add_field(
-				name=f"{lb[0]}: {lb[2]}",
-				value=f"{lb[3]} {'(Breaks)' if lb[1] == 'yes' else ''}", # no breaking, so we don't say it broke
-				inline=True
-			)
-			
-		else:
-			error["occurred"] = True
-			error["detail"] = NOT_TOP1000_TEXT
-	else:
-		error["occurred"] = True
-		error["detail"] = INVALID_LEVEL_TEXT
-	if error["occurred"]:
-		embed = discord.Embed(
-			title=f"An Error Occurred.",
-			colour=discord.Colour(0xff0000),
-		)
-		embed.set_author(
-			name="PB2 Leaderboards Bot", 
-			icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png"
-		)
-		embed.add_field(
-				name=f"Please see below for error info:",
-				value=error["detail"],
-				inline=True
-			)
-	await ctx.send(
-		embed=embed
-	)
 @bot.command(name='profile',help='Get Profile of a user - may take a while!')
 async def profile(ctx, user, unbreaking="no"):
 	nobreaks = False
@@ -564,6 +508,11 @@ class GlobalLeaderboardViewer(menus.ListPageSource):
 			)
 		#return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
 		return embed
+
+@bot.event
+async def on_ready():
+	print("[Bot] Connected to Discord!")
+	#await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="Your commands"))
 
 
 @bot.event

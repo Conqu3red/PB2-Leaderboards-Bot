@@ -19,7 +19,7 @@ Examples:
 
 
 
--top <level> [unbreaking] [offset]
+-[leaderboard|lb] <level> [--price PRICE] [--user USER] [--position POSITION=0] [--unbreaking UNBREAKING=False]
 
 Description: Top will return the top 12 for the specified level, offsetted by the optional offset parameter.
 
@@ -27,9 +27,10 @@ Parameters are indicated with <angle brackets> for required fields and [square b
 
 Parameters:
 - <Level> Required |  The campaign level number for the level being requested. Example: 1-2c for world 1, level 2, challenge
-- [Unbreaking] Optional |  Indicates if you want unbreaking only, or overall leaderboard:  Example: yes
-    - Valid Values: [yes],[no],[nobreaks]
-- [Offset] Optional |  Indicates the offset to be applied:  Example: 4
-	- Notes:
-		By default the top command shows positions 1 - 12, the offset applies an offset to this number. for example offset - offset+12, ie with an offset of 4 you will see positions 4-12
+
+- [--Unbreaking] Optional |  Indicates if you want unbreaking only, or overall leaderboard:  Example: true
+    - Valid Values: [true] (if you want a leaderboard with scores that can have breaks then don't pass this flag)
+- [--position] Optional |  Indicates a position you would like to see:  Example: 47
     - Valid Values: Numbers between 0 and 1000
+
+- [--price] Optional | 
