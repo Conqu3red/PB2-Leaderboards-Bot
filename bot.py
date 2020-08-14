@@ -198,7 +198,7 @@ def refresh_bucket_collated(override=False):
 		#print(level_id)
 	
 		buckets[level_id] = {}
-		if bytes_read[offset:offset+1] not in [b'\xff',b'\x01',b'\x00']:
+		if bytes_read[offset:offset+4] not in [b'\xff\xff\xff\xff',b'\x01\x00\x00\x00']:
 			continue
 		for category in ["any", "unbroken"]:
 			buckets[level_id][category] = []
