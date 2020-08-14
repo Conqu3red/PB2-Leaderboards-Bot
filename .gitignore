@@ -3,3 +3,4 @@ data/
 *.json
 *__pycache__
 data/*.json
+todo.txt
