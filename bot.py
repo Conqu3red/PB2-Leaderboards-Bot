@@ -12,7 +12,7 @@ from discord.ext import menus
 from discord.ext import flags
 from dotenv import load_dotenv
 import math
-BUCKET_URL = "https://dfp529wcvahka.cloudfront.net/manifests/leaderboards/buckets/collated.json"
+BUCKET_URL = "https://dfp529wcvahka.cloudfront.net/manifests/leaderboards/buckets/collated.bin"
 INVALID_LEVEL_TEXT = "Invalid Level."
 NOT_TOP1000_TEXT = "This User is not in the top 1000 for the specified level"
 NUMBER_TO_SHOW_TOP = 12
@@ -174,16 +174,51 @@ def refresh_bucket_collated(override=False):
 	global BUCKET_URL
 	current_time = time.time()
 	try:
-		cache_last_reloaded = os.path.getmtime(f"data/collated.json")
+		cache_last_reloaded = os.path.getmtime(f"data/collated.bin")
 		
 	except FileNotFoundError:
 		cache_last_reloaded = 0
 		pass
-	if current_time - cache_last_reloaded > 28800 or override: # 8 hours
+	if current_time - cache_last_reloaded > 28800: # 8 hours
 		url = BUCKET_URL
 		r = requests.get(url)
-		with open(f"data/collated.json", "wb") as cache_file:
+		with open(f"data/collated.bin", "wb") as cache_file:
 			cache_file.write(r.content)
+	
+	with open("data/collated.bin", "rb") as f:
+		bytes_read = f.read()
+	
+	buckets = {}
+	offset = 0
+	for c,lvl in enumerate(levels):
+		level_id = bytes_read[offset:offset+5].decode("utf-8") 
+		#print(offset)
+		#print(bytes_read[offset-15:offset+15])
+		offset += 5
+		#print(level_id)
+	
+		buckets[level_id] = {}
+		if bytes_read[offset:offset+1] not in [b'\xff',b'\x01',b'\x00']:
+			continue
+		for category in ["any", "unbroken"]:
+			buckets[level_id][category] = []
+			for i in range(100):
+				if bytes_read[offset:offset+4] == b"\xff\xff\xff\xff":
+					offset += 4
+					continue
+				current = {}
+				current["startRank"] = int.from_bytes(bytes_read[offset:offset+4], "little")
+				offset += 4
+				current["endRank"] = int.from_bytes(bytes_read[offset:offset+4], "little")
+				offset += 4
+				current["startValue"] = int.from_bytes(bytes_read[offset:offset+4], "little")
+				offset += 4
+				current["endValue"] = int.from_bytes(bytes_read[offset:offset+4], "little")
+				offset += 4
+				buckets[level_id][category].append(current)
+	with open("data/collated.json","w") as file:
+		json.dump(buckets, file)
+	
 	return cache_last_reloaded
 
 
