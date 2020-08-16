@@ -5,7 +5,7 @@
 # Documentation
 The doucmentation for the bot can be found [here](https://docs.google.com/document/d/1T3ucE2cbWTnCvEDN-aoGBPuXNbEpj3B7rnKfnCS0hdI/edit?usp=sharing)
 
-### Requirements
+# Requirements
 
 Requires python 3.8 to run *(3.3 - 3.6 might work)*
 
@@ -18,10 +18,9 @@ To install required dependancies:
 pip install -r requirements.txt
 ```
 
-### Development
+# Development
 
 Want to contribute? Great!
 
-License
-----
+# License
 See LICENSE.md
