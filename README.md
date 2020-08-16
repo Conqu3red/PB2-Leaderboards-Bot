@@ -24,5 +24,4 @@ Want to contribute? Great!
 
 License
 ----
-
-MIT
+See LICENSE.md
