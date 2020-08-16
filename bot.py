@@ -112,12 +112,6 @@ def find_user(leaderboard_id, user, unbroken=False):
 		return formatted
 
 
-
-
-
-
-
-
 def create_profile(user, unbroken):
 	referer = "any"
 	if unbroken:
@@ -481,9 +475,12 @@ async def milestones(ctx, level, **flags):
 bot.add_command(milestones)
 @flags.add_flag("--unbreaking", type=bool, default=False)
 @flags.add_flag("--type", type=str, default="all")
+@flags.add_flag("--user", type=str)
 
 @flags.command(name='globaltop',help='Get Global Leaderboard')
+
 async def globaltop(ctx, **flags):
+	offset = 0
 	level_type = flags["type"]
 	nobreaks = flags["unbreaking"]
 	level_type = level_type.lower()
@@ -497,6 +494,11 @@ async def globaltop(ctx, **flags):
 		)
 	global_leaderboard,id_to_display_names = get_global_leaderboard(nobreaks,level_type)
 	
+	if flags["user"] != None:
+			for pos,itm in enumerate(list(global_leaderboard.items())):
+				if id_to_display_names[itm[0]] == flags["user"]:
+					offset = pos
+					break
 	embed = discord.Embed(
 			title=f"Global Leaderboard:",
 			colour=discord.Colour(0x3b12ef)
@@ -515,16 +517,23 @@ async def globaltop(ctx, **flags):
 		)
 		#print(c,id_to_display_names[itm[0]], itm[1])
 	await message.delete()
-	pages = menus.MenuPages(source=GlobalLeaderboardViewer(lb), clear_reactions_after=True)
+	pages = menus.MenuPages(source=GlobalLeaderboardViewer(lb,offset), clear_reactions_after=True)
 	await pages.start(ctx)
 
 bot.add_command(globaltop)
 class GlobalLeaderboardViewer(menus.ListPageSource):
-	def __init__(self, data):
+	def __init__(self, data, offset):
+		self.data = data
+		self.offs = offset
+		self.first = True
 		super().__init__(data, per_page=12)
 
 	async def format_page(self, menu, entries):
-		offset = menu.current_page * self.per_page
+		if self.first:
+			self.first = False
+			menu.current_page = math.floor(self.offs/NUMBER_TO_SHOW_TOP)
+			entries = self.data[(self.offs - self.offs % NUMBER_TO_SHOW_TOP):(self.offs - self.offs % NUMBER_TO_SHOW_TOP)+NUMBER_TO_SHOW_TOP]
+		offset = (menu.current_page * self.per_page) + self.offs
 		embed = discord.Embed(
 			title=f"Global Leaderboard",
 			colour=discord.Colour(0x3b12ef),
