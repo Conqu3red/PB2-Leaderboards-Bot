@@ -388,12 +388,10 @@ class GeneralLeaderboardViewer(menus.ListPageSource):
 		return embed
 
 
-
-@bot.command(name='profile',help='Get Profile of a user - may take a while!')
-async def profile(ctx, user, unbreaking="no"):
-	nobreaks = False
-	if unbreaking.lower() in ["nobreaks", "yes"]:
-		nobreaks = True
+@flags.add_flag("--unbreaking", type=bool, default=False)
+@flags.command(name='profile',help='Get Profile of a user - may take a while!')
+async def profile(ctx, user, **flags):
+	nobreaks = flags["unbreaking"]
 	message = await ctx.send(
 		embed = discord.Embed(
 			title=f"Downloading Leaderboards... This May take a while",
@@ -405,6 +403,7 @@ async def profile(ctx, user, unbreaking="no"):
 	pages = menus.MenuPages(source=ProfileViewer(profile), clear_reactions_after=True)
 	await pages.start(ctx)
 
+bot.add_command(profile)
 
 class ProfileViewer(menus.ListPageSource):
 	def __init__(self, data):
