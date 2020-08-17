@@ -104,9 +104,6 @@ def find_user(leaderboard_id, user, unbroken=False):
 		for rank,score in enumerate(leaderboard_data):
 			if score["owner"]["display_name"] == user:
 				formatted = [rank+1,"yes" if score["didBreak"] else "no",score["owner"]["display_name"],"${:,}".format(score["value"])]
-		#if formatted != []:
-			#table = tabulate(formatted, headers=["Rank","Breaks?","Name", "Price"],tablefmt="pipe")
-			#print(table)
 		if formatted == []:
 			formatted = NOT_TOP1000_TEXT
 		return formatted
@@ -117,8 +114,6 @@ def create_profile(user, unbroken):
 	if unbroken:
 		referer = "unbroken"
 	global levels
-	#for level in levels:
-	#	get_level_id(level)
 	generated = []
 	for level in levels:
 		#print(level)

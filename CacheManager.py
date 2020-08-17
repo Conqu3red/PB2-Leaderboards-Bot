@@ -2,6 +2,7 @@ import time, datetime
 import os
 import json
 import requests
+# download_url refers to the location of the leaderboard files
 download_url = "http://dfp529wcvahka.cloudfront.net/manifests/leaderboards/scores/{0}.json"
 identifiers = {
 "1":  ["mAp2V","NAgrb","Bbm2A","0A5Zn","JbOmn","aVeaV","5VlRA","gnR7V","7b7xA","WAGoA","ObqMb","EAaRn","Xb3Ob","1nXeV","EABGn","6Vw5A"], #World 1
