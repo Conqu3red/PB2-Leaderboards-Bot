@@ -29,17 +29,17 @@ _thread.start_new_thread( CacheManager, ())
 #print(time.time())
 download_url = "http://dfp529wcvahka.cloudfront.net/manifests/leaderboards/scores/{0}.json"
 identifiers = {
-"1": ["mAp2V", "NAgrb", "Bbm2A", "0A5Zn", "JbOmn", "aVeaV", "5VlRA", "gnR7V", "7b7xA", "WAGoA", "ObqMb", "EAaRn", "Xb3Ob", "1nXeV", "EABGn", "6Vw5A"],	#World 1
-"2": ["zA0Mn", "kb2wA", "gb1Kn", "ZAoeV", "MAr3n", "QVYRb", "JnZ2n", "PV4Qb", "yb8Pb", "gnyrV", "MAEoV", "qn9JV", "5AWzb", "MV6DA", "1nQen", "bmw2n"],	#World 2
-"3": ["jnL9V", "vAMDb", "lnKkn", "bdjrn", "JbDPb", "mnkRA", "Ap22V", "abx5A", "5VJBV", "zAvPV", "JVPon", "ZbjWA", "XVzGb", "A5QZA", "ObNoA", "AgXrn"],	#World 3
-"4": ["nk2rA", "nKv3A", "bje7V", "b2qZV", "VPllV", "nyl7A", "VY39A", "Av89V", "bxeQA", "AW4kn", "bDDrb", "nQlOA", "nZLOb", "n9ZBV", "AM8vb", "V6BNV"],	#World 4
-"5": ["AGDKo","nRM67","AoqEe","bqYEM","b7l7x","Aa58R","b3WOO","VwMk5","AB1QG","nXZMe","A0ZgM","AEOYo","b1WmK","nKvxk","VY3MR","nZLM2"],	#World 5 :)
-"1c": ["AW7zA", "bq7Mn", "Aa7RV", "Ao2eb", "nXLen", "Vw85b", "V6qDn", "nK8kV", "b33Ob", "A0rMV", "nZ32V", "VY4Rn", "ABDGV", "AEBon", "b1qKb", "n9dJA"],   #World 1c
-"2c": ["VzoGb", "nQOeb", "b2WwA", "nyXrA", "AMmDA", "VJDBA", "AvMPb", "bN5oV", "bDzPn", "bxN5n", "nklRV", "VPgon", "b83PV", "bjMWV", "nLm9V", "V4LQV"],   #World 2c
-"3c": ["Vezab", "Arl3V", "bdarA", "A5GZV", "bqYMb", "AGDon", "ApQ9n", "ApQ2n", "AgrJb", "bdaqA", "Agrrb", "b7lxA", "bmK2n", "Vl5Rb", "bOpmA", "nRM7A"],   #World 3c
-"4c": ["b7ljA", "bOpaA", "Aa5OA", "VwMpA", "A0ZaV", "bqYob", "A5GJV", "b3WDb", "nXZzb", "nRM8A", "AGD6n", "AB19b", "Vez1b", "bmK9n", "AoqpV", "Vl5gb"],   #World 4c
-"5c": ["VJGKB","AgrJr","ApQj2","V6BRD","nLar9","bx3E5","VzJ2G","nQm4e","bdaJr","Av8NP","bNdLo","b2Z5w","ArdM3","V45eQ","VPeKo","b8zGP"],   #World 5c :)
-"6": ["bOeMR","A5XOx","nR5Re","bm2OL","b7WRR","Vl2Wp","VeDY5","AGvLD","AaE79","bqe7e", 'b3Y34', 'nXvLa', 'ABND7', 'Vwa8y', 'A0QrO', 'Aor26']	#Secret World :)
+"1":  ["mAp2V","NAgrb","Bbm2A","0A5Zn","JbOmn","aVeaV","5VlRA","gnR7V","7b7xA","WAGoA","ObqMb","EAaRn","Xb3Ob","1nXeV","EABGn","6Vw5A"], #World 1
+"2":  ["zA0Mn","kb2wA","gb1Kn","ZAoeV","MAr3n","QVYRb","JnZ2n","PV4Qb","yb8Pb","gnyrV","MAEoV","qn9JV","5AWzb","MV6DA","1nQen","bmw2n"], #World 2
+"3":  ["jnL9V","vAMDb","lnKkn","bdjrn","JbDPb","mnkRA","Ap22V","abx5A","5VJBV","zAvPV","JVPon","ZbjWA","XVzGb","A5QZA","ObNoA","AgXrn"], #World 3
+"4":  ["nk2rA","nKv3A","bje7V","b2qZV","VPllV","nyl7A","VY39A","Av89V","bxeQA","AW4kn","bDDrb","nQlOA","nZLOb","n9ZBV","AM8vb","V6BNV"], #World 4
+"5":  ["AGDKo","nRM67","AoqEe","bqYEM","b7l7x","Aa58R","b3WOO","VwMk5","AB1QG","nXZMe","A0ZgM","AEOYo","b1WmK","nKvxk","VY3MR","nZLM2"], #World 5
+"1c": ["AW7zA","bq7Mn","Aa7RV","Ao2eb","nXLen","Vw85b","V6qDn","nK8kV","b33Ob","A0rMV","nZ32V","VY4Rn","ABDGV","AEBon","b1qKb","n9dJA"], #World 1c
+"2c": ["VzoGb","nQOeb","b2WwA","nyXrA","AMmDA","VJDBA","AvMPb","bN5oV","bDzPn","bxN5n","nklRV","VPgon","b83PV","bjMWV","nLm9V","V4LQV"], #World 2c
+"3c": ["Vezab","Arl3V","bdarA","A5GZV","bqYMb","AGDon","ApQ9n","ApQ2n","AgrJb","bdaqA","Agrrb","b7lxA","bmK2n","Vl5Rb","bOpmA","nRM7A"], #World 3c
+"4c": ["b7ljA","bOpaA","Aa5OA","VwMpA","A0ZaV","bqYob","A5GJV","b3WDb","nXZzb","nRM8A","AGD6n","AB19b","Vez1b","bmK9n","AoqpV","Vl5gb"], #World 4c
+"5c": ["VJGKB","AgrJr","ApQj2","V6BRD","nLar9","bx3E5","VzJ2G","nQm4e","bdaJr","Av8NP","bNdLo","b2Z5w","ArdM3","V45eQ","VPeKo","b8zGP"], #World 5c
+"6":  ["bOeMR","A5XOx","nR5Re","bm2OL","b7WRR","Vl2Wp","VeDY5","AGvLD","AaE79","bqe7e","b3Y34","nXvLa","ABND7","Vwa8y","A0QrO","Aor26"]	 #World 6
 }
 
 def get_level_id(shorthand_levelname):
@@ -400,19 +400,20 @@ async def profile(ctx, user, **flags):
 		)
 	profile = create_profile(user, nobreaks)
 	await message.delete()
-	pages = menus.MenuPages(source=ProfileViewer(profile), clear_reactions_after=True)
+	pages = menus.MenuPages(source=ProfileViewer(profile,flags["unbreaking"]), clear_reactions_after=True)
 	await pages.start(ctx)
 
 bot.add_command(profile)
 
 class ProfileViewer(menus.ListPageSource):
-	def __init__(self, data):
+	def __init__(self, data, unbreaking):
+		self.unbreaking = unbreaking
 		super().__init__(data, per_page=8)
 
 	async def format_page(self, menu, entries):
 		offset = menu.current_page * self.per_page
 		embed = discord.Embed(
-			title=f"Profile for: {entries[0]['owner']}",
+			title=f"Profile for: {entries[0]['owner']} {'(Unbreaking)' if self.unbreaking else ''}",
 			colour=discord.Colour(0x3b12ef),
 			timestamp=datetime.datetime.now() # or any other datetime type format.
 		)
@@ -445,7 +446,7 @@ async def milestones(ctx, level, **flags):
 	level_id = get_level_id(level)
 	milestones = get_milestones(level_id, nobreaks)
 	embed = discord.Embed(
-		title=f"Milestones for {level}",
+		title=f"Milestones for {level} {'(Unbreaking)' if nobreaks else ''}",
 		colour=discord.Colour(0x3b12ef),
 		timestamp=datetime.datetime.utcfromtimestamp(refresh_bucket_collated()) # or any other datetime type format.
 	)
@@ -516,15 +517,16 @@ async def globaltop(ctx, **flags):
 		)
 		#print(c,id_to_display_names[itm[0]], itm[1])
 	await message.delete()
-	pages = menus.MenuPages(source=GlobalLeaderboardViewer(lb,offset), clear_reactions_after=True)
+	pages = menus.MenuPages(source=GlobalLeaderboardViewer(lb, offset, level_type), clear_reactions_after=True)
 	await pages.start(ctx)
 
 bot.add_command(globaltop)
 class GlobalLeaderboardViewer(menus.ListPageSource):
-	def __init__(self, data, offset):
+	def __init__(self, data, offset, level_type):
 		self.data = data
 		self.offs = offset
 		self.first = True
+		self.level_type = level_type
 		super().__init__(data, per_page=12)
 
 	async def format_page(self, menu, entries):
@@ -534,7 +536,7 @@ class GlobalLeaderboardViewer(menus.ListPageSource):
 			entries = self.data[(self.offs - self.offs % NUMBER_TO_SHOW_TOP):(self.offs - self.offs % NUMBER_TO_SHOW_TOP)+NUMBER_TO_SHOW_TOP]
 		offset = (menu.current_page * self.per_page) + self.offs
 		embed = discord.Embed(
-			title=f"Global Leaderboard",
+			title=f"Global Leaderboard ({self.level_type} levels)",
 			colour=discord.Colour(0x3b12ef),
 			timestamp=datetime.datetime.now() # or any other datetime type format.
 		)
