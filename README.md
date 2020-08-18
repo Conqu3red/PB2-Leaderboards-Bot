@@ -1,7 +1,6 @@
-# Poly-Bridge-2-Leaderboards-Bot
-![](https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png)
-<img src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/python/python.png" alt="Made with Python 3" width=128 height=128>
-
+# Poly Bridge 2 Leaderboards Bot
+[![](https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png)](https://store.steampowered.com/app/1062160/Poly_Bridge_2/)
+[<img src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/python/python.png" alt="Made with Python 3" width=128 height=128>](https://python.org)
 - The PB2 Leaderboards bot is a project with the goal of creating a discord bot to view and analyse the PB2 leaderboards.
 
 # Documentation
