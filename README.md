@@ -1,5 +1,7 @@
 # Poly-Bridge-2-Leaderboards-Bot
 ![](https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png)
+<img src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/python/python.png" alt="Made with Python 3" width=128 height=128>
+
 - The PB2 Leaderboards bot is a project with the goal of creating a discord bot to view and analyse the PB2 leaderboards.
 
 # Documentation
@@ -40,11 +42,13 @@ To install required dependancies:
 ```
 pip install -r requirements.txt
 ```
-
+For the code to run properly you will be required to create a file called `.env`. This file will need to contain:
+```
+DISCORD_TOKEN=YOUR_TOKEN
+```
+Where `YOUR_TOKEN` is a Discord Bot token. [Creating a Discord Bot](https://discord.com/developers/docs/intro#bots-and-apps)
 # Development
-
 Want to contribute? Great!
-
 # License
 See LICENSE.md
 
