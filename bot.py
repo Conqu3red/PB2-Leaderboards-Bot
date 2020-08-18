@@ -276,8 +276,19 @@ def get_global_leaderboard(unbroken,level_type="all"):
 				id_to_display_names[score["owner"]["id"]] = score["owner"]["display_name"]
 			leaderboard[score["owner"]["id"]] += int(rank_to_score[score["rank"]])-100
 
-	leaderboard_sorted = {k: v for k, v in sorted(leaderboard.items(), key=lambda item: item[1])}
-	return (leaderboard_sorted, id_to_display_names)
+	leaderboard_sorted = {user_id: score for user_id, score in sorted(leaderboard.items(), key=lambda item: item[1])}
+	leaderboard_with_ranks = {}
+	for c,item in enumerate(leaderboard_sorted.items()):
+		this = {}
+		this["score"] = item[1]
+		this["rank"] = c
+		if c > 0:
+			if this["score"] == prev["score"]: # Allign ranks for scores that tie
+				this["rank"] = prev["rank"]
+		prev = this
+		leaderboard_with_ranks[item[0]] = this
+	
+	return (leaderboard_with_ranks, id_to_display_names)
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -483,7 +494,7 @@ async def globaltop(ctx, **flags):
 		level_type = "all"
 	message = await ctx.send(
 		embed = discord.Embed(
-			title=f"Downloading Leaderboards... This May take a while",
+			title=f"Processing Data...",
 			colour=discord.Colour(0x3b12ef)
 			)
 		)
@@ -505,8 +516,8 @@ async def globaltop(ctx, **flags):
 	lb = []
 	for c,itm in enumerate(list(global_leaderboard.items())):
 		lb.append({
-				"name":f"{c+1}: {id_to_display_names[itm[0]]}",
-				"value":f"Score: {itm[1]}",
+				"name":f"{itm[1]['rank']}: {id_to_display_names[itm[0]]}",
+				"value":f"Score: {itm[1]['score']}",
 				"inline":True
 		}
 		)
@@ -584,5 +595,6 @@ async def send_cmd_help(ctx):
 	em.color = discord.Color.green()
 	em.description = cmd.help
 	return em
+ 
 
 bot.run(TOKEN)
