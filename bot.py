@@ -124,17 +124,26 @@ def create_profile(user, unbroken):
 			file = json.load(file)
 			leaderboard_data = file[referer]["top1000"]
 			found = False
+			tied = 0
 			for rank,score in enumerate(leaderboard_data):
+				r = rank
+				if rank > 0:
+					if score["value"] == prev["value"]:
+						tied += 1
+						r = rank-tied
+					else:
+						tied = 0
 				if score["owner"]["display_name"] == user:
 					found = True
 					this_level = {
 								"owner":user,
 								"level":level,
-								"rank":rank+1,
+								"rank":r+1,
 								"price":"${:,}".format(score["value"]),
 								"didBreak":score["didBreak"],
 								"found":True
 								}
+				prev = score
 			if not found:
 				this_level = {
 							"owner":user,
@@ -395,12 +404,12 @@ class GeneralLeaderboardViewer(menus.ListPageSource):
 
 
 @flags.add_flag("--unbreaking", type=bool, default=False)
-@flags.command(name='profile',help='Get Profile of a user - may take a while!')
+@flags.command(name='profile',help='Get the score of a user on every level.')
 async def profile(ctx, user, **flags):
 	nobreaks = flags["unbreaking"]
 	message = await ctx.send(
 		embed = discord.Embed(
-			title=f"Downloading Leaderboards... This May take a while",
+			title=f"Processing Data...",
 			colour=discord.Colour(0x3b12ef)
 			)
 		)
@@ -523,16 +532,17 @@ async def globaltop(ctx, **flags):
 		)
 		#print(c,id_to_display_names[itm[0]], itm[1])
 	await message.delete()
-	pages = menus.MenuPages(source=GlobalLeaderboardViewer(lb, offset, level_type), clear_reactions_after=True)
+	pages = menus.MenuPages(source=GlobalLeaderboardViewer(lb, offset, level_type, nobreaks), clear_reactions_after=True)
 	await pages.start(ctx)
 
 bot.add_command(globaltop)
 class GlobalLeaderboardViewer(menus.ListPageSource):
-	def __init__(self, data, offset, level_type):
+	def __init__(self, data, offset, level_type, unbreaking):
 		self.data = data
 		self.offs = offset
 		self.first = True
 		self.level_type = level_type
+		self.unbreaking = unbreaking
 		super().__init__(data, per_page=12)
 
 	async def format_page(self, menu, entries):
@@ -542,7 +552,7 @@ class GlobalLeaderboardViewer(menus.ListPageSource):
 			entries = self.data[(self.offs - self.offs % NUMBER_TO_SHOW_TOP):(self.offs - self.offs % NUMBER_TO_SHOW_TOP)+NUMBER_TO_SHOW_TOP]
 		offset = (menu.current_page * self.per_page) + self.offs
 		embed = discord.Embed(
-			title=f"Global Leaderboard ({self.level_type} levels)",
+			title=f"Global Leaderboard ({self.level_type} levels) {'(Unbreaking)' if self.unbreaking else ''}",
 			colour=discord.Colour(0x3b12ef),
 			timestamp=datetime.datetime.now() # or any other datetime type format.
 		)
