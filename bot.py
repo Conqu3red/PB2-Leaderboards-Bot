@@ -516,7 +516,7 @@ async def globaltop(ctx, **flags):
 	lb = []
 	for c,itm in enumerate(list(global_leaderboard.items())):
 		lb.append({
-				"name":f"{itm[1]['rank']}: {id_to_display_names[itm[0]]}",
+				"name":f"{itm[1]['rank']+1}: {id_to_display_names[itm[0]]}",
 				"value":f"Score: {itm[1]['score']}",
 				"inline":True
 		}
