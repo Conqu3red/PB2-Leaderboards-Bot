@@ -21,12 +21,12 @@ NUMBER_TO_SHOW_TOP = 12
 # Initiate CacheManager.py thread
 
 from CacheManager import *
-
-_thread.start_new_thread( CacheManager, ())
+_thread.start_new_thread(CacheManager, ())
 
 
 #print(os.path.getmtime("data/collated.json"))
 #print(time.time())
+weekly_url = "https://dfp529wcvahka.cloudfront.net/manifests/weeklyChallenges.json"
 download_url = "http://dfp529wcvahka.cloudfront.net/manifests/leaderboards/scores/{0}.json"
 identifiers = {
 "1":  ["mAp2V","NAgrb","Bbm2A","0A5Zn","JbOmn","aVeaV","5VlRA","gnR7V","7b7xA","WAGoA","ObqMb","EAaRn","Xb3Ob","1nXeV","EABGn","6Vw5A"], #World 1
@@ -364,7 +364,7 @@ bot.add_command(leaderboard)
 
 
 class GeneralLeaderboardViewer(menus.ListPageSource):
-	def __init__(self, data, level, offset, unbreaking, reload_time):
+	def __init__(self, data, level, offset, unbreaking, reload_time, is_weekly_challenge=False, thumbnail_url=None):
 		super().__init__(data, per_page=NUMBER_TO_SHOW_TOP)
 		self.level = level
 		self.offs = offset
@@ -372,19 +372,25 @@ class GeneralLeaderboardViewer(menus.ListPageSource):
 		self.data = data
 		self.reload_time = reload_time
 		self.first = True
+		self.is_weekly_challenge = is_weekly_challenge
+		self.thumbnail_url = thumbnail_url
 		# DOES NOT APPLY OFFSET!
 	async def format_page(self, menu, entries): # Entries is already a specific place
 		if self.first:
 			self.first = False
 			menu.current_page = math.floor(self.offs/NUMBER_TO_SHOW_TOP)
 			entries = self.data[(self.offs - self.offs % NUMBER_TO_SHOW_TOP):(self.offs - self.offs % NUMBER_TO_SHOW_TOP)+NUMBER_TO_SHOW_TOP]
-			
+		
 		offset = (menu.current_page * self.per_page) + self.offs
 		embed = discord.Embed(
 			title=f"Leaderboard for {self.level} {'(Unbreaking)' if self.unbreaking else ''}",
 			colour=discord.Colour(0x3b12ef),
 			timestamp=self.reload_time # or any other datetime type format.
 		)
+		if self.is_weekly_challenge and self.thumbnail_url != None:
+			embed.set_thumbnail(
+				url=self.thumbnail_url
+			)
 		embed.set_footer(
 			text=f"cached leaderboards for {self.level} last updated",
 		)
@@ -535,6 +541,7 @@ async def globaltop(ctx, **flags):
 	pages = menus.MenuPages(source=GlobalLeaderboardViewer(lb, offset, level_type, nobreaks), clear_reactions_after=True)
 	await pages.start(ctx)
 
+
 bot.add_command(globaltop)
 class GlobalLeaderboardViewer(menus.ListPageSource):
 	def __init__(self, data, offset, level_type, unbreaking):
@@ -569,6 +576,78 @@ class GlobalLeaderboardViewer(menus.ListPageSource):
 			)
 		#return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
 		return embed
+
+
+@flags.add_flag("--week", type=int, default=0)
+@flags.add_flag("--current", type=bool, default=False)
+@flags.add_flag("--unbreaking", type=bool, default=False)
+@flags.add_flag("--position", type=int, default=0)
+@flags.add_flag("--user", type=str)
+@flags.add_flag("--price")
+@flags.command(name='weekly',help='Command Not Complete - Don\'t use')
+
+async def weeklyChallenge(ctx, **flags):
+	challenge_weeks = {}
+	week = flags["week"]
+	r = requests.get(weekly_url)
+	data = json.loads(r.content)
+	for item in data:
+		challenge_weeks[item["week"]] = item
+	
+	if week < 1 or week > len(challenge_weeks.values()):
+		week = list(challenge_weeks.keys())[-1]
+	error = {"occurred":False,"detail":""}
+	#flags["position"] += -1
+	if flags["position"] < 0 or flags["position"] > 1000-NUMBER_TO_SHOW_TOP:
+		flags["position"] = 0
+	offset = flags["position"]
+	level_id = "WC." + challenge_weeks[week]["id"]
+	
+	if level_id != INVALID_LEVEL_TEXT: # Top command
+
+		lb = get_top(level_id, flags["unbreaking"])
+		if flags["user"] != None and flags["price"] == None and flags["position"] == 0: # Position Command
+			for pos,score in enumerate(lb):
+				if score['display_name'] == flags["user"]:
+					offset = pos
+					break
+		elif flags["price"] != None and flags["position"] == 0 and flags["user"] == None:
+			price = parse_price_input(flags["price"])
+			offset = 0
+			prev = 0
+			for c,entry in enumerate(lb):
+				if prev <= price and entry["value"] >= price:
+					offset = c
+					break
+				prev = entry["value"]
+		else: # Calculate offset based on passed position and ties
+			prev = 0
+			for c,entry in enumerate(lb):
+				if prev <= offset and entry["rank"] >= offset:
+					offset = c
+					break
+				if entry["rank"] != prev:
+					prev = entry["rank"]
+		pages = menus.MenuPages(source=GeneralLeaderboardViewer(lb,challenge_weeks[week]["title"],offset,flags["unbreaking"], datetime.datetime.utcfromtimestamp(refresh_data(level_id)), True, challenge_weeks[week]["preview"]), clear_reactions_after=True)
+		await pages.start(ctx)
+	else:
+		error["occurred"] = True
+		error["detail"] = INVALID_LEVEL_TEXT
+	if error["occurred"]:
+		embed = discord.Embed(
+			title=f"An Error Occurred.",
+			description=error["detail"],
+			colour=discord.Colour(0xff0000),
+		)
+		await ctx.send(
+			embed=embed
+		)
+	
+
+
+
+bot.add_command(weeklyChallenge)
+
 
 @bot.event
 async def on_ready():
