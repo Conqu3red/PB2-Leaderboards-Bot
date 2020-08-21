@@ -579,7 +579,6 @@ class GlobalLeaderboardViewer(menus.ListPageSource):
 
 
 @flags.add_flag("--week", type=int, default=0)
-@flags.add_flag("--current", type=bool, default=False)
 @flags.add_flag("--unbreaking", type=bool, default=False)
 @flags.add_flag("--position", type=int, default=0)
 @flags.add_flag("--user", type=str)
