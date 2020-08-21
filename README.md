@@ -14,7 +14,7 @@ Requires python 3.8 to run *(3.3 - 3.6 might work)*
 
 [Python 3.8 via Microsoft Store](https://www.microsoft.com/en-us/p/python-38/9mssztt1n39l)
 
-Depandancies:
+Dependencies:
 |Name               |Version            |
 |-------------------|-------------------|
 | aiohttp           | 3.6.2             |
@@ -37,7 +37,7 @@ Depandancies:
 | yarl              | 1.5.1             |
 | zope.interface    | 5.1.0             |
 
-To install required dependancies:
+To install required dependencies:
 ```
 pip install -r requirements.txt
 ```
