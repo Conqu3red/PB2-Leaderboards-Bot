@@ -589,8 +589,22 @@ class GlobalLeaderboardViewer(menus.ListPageSource):
 async def weeklyChallenge(ctx, **flags):
 	challenge_weeks = {}
 	week = flags["week"]
-	r = requests.get(weekly_url)
-	data = json.loads(r.content)
+	current_time = time.time()
+	try:
+		cache_last_reloaded = os.path.getmtime(f"data/weeklyChallenges.json")
+		
+	except FileNotFoundError:
+		cache_last_reloaded = 0
+		pass
+	if current_time - cache_last_reloaded > 28800: # 8 hours
+		r = requests.get(weekly_url)
+		with open(f"data/weeklyChallenges.json", "wb") as cache_file:
+			cache_file.write(r.content)
+		print("[CacheManager] Updated weeklyChallenges")
+	with open("data/weeklyChallenges.json") as file:
+		data = json.load(file)
+	
+
 	for item in data:
 		challenge_weeks[item["week"]] = item
 	
