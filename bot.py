@@ -419,44 +419,89 @@ async def profile(ctx, user, **flags):
 			colour=discord.Colour(0x3b12ef)
 			)
 		)
-	profile = create_profile(user, nobreaks)
+	profile_temp = create_profile(user, nobreaks)
+	profile = [k for k in profile_temp[:8]] + profile_temp # add 8 filler entries for the stats page
+	# find users positions on global leaderboards:
+	global_positions = {}
+	for level_type in ["all","regular","challenge"]:
+		global_leaderboard,id_to_display_names = get_global_leaderboard(nobreaks,level_type)
+		if user != None:
+				for pos,itm in enumerate(list(global_leaderboard.items())):
+					if id_to_display_names[itm[0]] == user:
+						global_positions[level_type] = itm[1]
+						break
 	await message.delete()
-	pages = menus.MenuPages(source=ProfileViewer(profile,flags["unbreaking"]), clear_reactions_after=True)
+	pages = menus.MenuPages(source=ProfileViewer(profile,flags["unbreaking"],global_positions), clear_reactions_after=True)
 	await pages.start(ctx)
 
 bot.add_command(profile)
 
 class ProfileViewer(menus.ListPageSource):
-	def __init__(self, data, unbreaking):
+	def __init__(self, data, unbreaking, global_positions):
+		self.data = data[8:]
 		self.unbreaking = unbreaking
+		self.global_positions = global_positions
 		super().__init__(data, per_page=8)
 
 	async def format_page(self, menu, entries):
 		offset = menu.current_page * self.per_page
-		embed = discord.Embed(
-			title=f"Profile for: {entries[0]['owner']} {'(Unbreaking)' if self.unbreaking else ''}",
-			colour=discord.Colour(0x3b12ef),
-			timestamp=datetime.datetime.now() # or any other datetime type format.
-		)
-		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
-		embed.set_author(
-			name="PB2 Leaderboards Bot", 
-			icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png"
-		)
-		for c, result in enumerate(entries, start=offset):
-			if result["found"]:
+		
+		if menu.current_page == 0:
+			embed = discord.Embed(
+				title=f"Profile for: {entries[0]['owner']}{' (Unbreaking)' if self.unbreaking else ''}{' (Stats)' if menu.current_page == 0 else ''}",
+				description="Showing Stats page. Press :arrow_forward: in reactions to see scores for each level.",
+				colour=discord.Colour(0x3b12ef),
+				timestamp=datetime.datetime.now() # or any other datetime type format.
+			)
+			embed.set_author(
+				name="PB2 Leaderboards Bot", 
+				icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png"
+			)
+			global_pos_formatted = f""
+			for global_score in self.global_positions.items():
+				global_pos_formatted += f"{global_score[0]}: #{global_score[1]['rank']+1} ({global_score[1]['score']})\n"
+			if len(global_pos_formatted) != 0:
 				embed.add_field(
-					name=f"{result['level']}: #{result['rank']}",
-					value=f"{result['price']} {'(Breaks)' if result['didBreak'] else ''}", # no breaking, so we don't say it broke
+						name=f"Global Leaderboard Positions",
+						value=f"```{global_pos_formatted}```",
+						inline=False
+				)
+			number_top = {"1":0, "10":0, "100":0, "1000":0}
+			for element in self.data:
+				if element["found"]:
+					for category in number_top.keys():
+						if element["rank"] <= int(category):
+							number_top[category] += 1
+			for itm in number_top.items():
+				embed.add_field(
+					name=f"Top {itm[0]}s",
+					value=f"`{itm[1]}`",
 					inline=True
 				)
-			elif not result["found"]:
-				embed.add_field(
-					name=f"{result['level']}:",
-					value=f"❌",
-					inline=True
-				)
-		#return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
+		else:
+			embed = discord.Embed(
+				title=f"Profile for: {entries[0]['owner']}{' (Unbreaking)' if self.unbreaking else ''} {'(Stats)' if menu.current_page == 0 else ''}",
+				colour=discord.Colour(0x3b12ef),
+				timestamp=datetime.datetime.now() # or any other datetime type format.
+			)
+			#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
+			embed.set_author(
+				name="PB2 Leaderboards Bot", 
+				icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png"
+			)
+			for c, result in enumerate(entries, start=offset):
+				if result["found"]:
+					embed.add_field(
+						name=f"{result['level']}: #{result['rank']}",
+						value=f"{result['price']} {'(Breaks)' if result['didBreak'] else ''}", # no breaking, so we don't say it broke
+						inline=True
+					)
+				elif not result["found"]:
+					embed.add_field(
+						name=f"{result['level']}:",
+						value=f"❌",
+						inline=True
+					)
 		return embed
 
 
