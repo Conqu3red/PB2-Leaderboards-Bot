@@ -1,0 +1,9 @@
+Description: Shows a user’s score on every level
+
+
+Parameters are indicated with <angle brackets> for required fields and [square brackets] for optional fields.
+
+Parameters:
+-<user> Required | the user to fetch profile for. Example: Bolt986, example with spaces: “lazy comet”
+	- Default Value: (nothing)
+-[--unbreaking] Optional |  to indicate you only want unbreaking scores pass this flag as --unbreaking

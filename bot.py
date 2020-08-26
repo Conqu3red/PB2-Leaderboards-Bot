@@ -304,7 +304,7 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 
 bot = commands.Bot(command_prefix='-')
 
-@flags.add_flag("--unbreaking", type=bool, default=False)
+@flags.add_flag("--unbreaking",action="store_true", default=False)
 @flags.add_flag("--position", type=int, default=0)
 @flags.add_flag("--user", type=str)
 @flags.add_flag("--price")
@@ -409,7 +409,7 @@ class GeneralLeaderboardViewer(menus.ListPageSource):
 		return embed
 
 
-@flags.add_flag("--unbreaking", type=bool, default=False)
+@flags.add_flag("--unbreaking", action="store_true", default=False)
 @flags.command(name='profile',help='Get the score of a user on every level.')
 async def profile(ctx, user, **flags):
 	nobreaks = flags["unbreaking"]
@@ -505,7 +505,7 @@ class ProfileViewer(menus.ListPageSource):
 		return embed
 
 
-@flags.add_flag("--unbreaking", type=bool, default=False)
+@flags.add_flag("--unbreaking", action="store_true", default=False)
 @flags.command(name='milestones',help='Get Milestones for a given level')
 async def milestones(ctx, level, **flags):
 	nobreaks = flags["unbreaking"]
@@ -539,7 +539,7 @@ async def milestones(ctx, level, **flags):
 	)
 
 bot.add_command(milestones)
-@flags.add_flag("--unbreaking", type=bool, default=False)
+@flags.add_flag("--unbreaking", action="store_true", default=False)
 @flags.add_flag("--type", type=str, default="all")
 @flags.add_flag("--user", type=str)
 
@@ -624,7 +624,7 @@ class GlobalLeaderboardViewer(menus.ListPageSource):
 
 
 @flags.add_flag("--week", type=int, default=0)
-@flags.add_flag("--unbreaking", type=bool, default=False)
+@flags.add_flag("--unbreaking", action="store_true", default=False)
 @flags.add_flag("--position", type=int, default=0)
 @flags.add_flag("--user", type=str)
 @flags.add_flag("--price")
@@ -742,6 +742,28 @@ async def send_cmd_help(ctx):
 	em.color = discord.Color.green()
 	em.description = cmd.help
 	return em
- 
+
+bot.remove_command("help")
+@bot.command(name='help',help='Shows this message!')
+
+async def help(ctx, command_name=None):
+	if command_name:
+		# Means there is a command_name parameter
+		for command in bot.commands:
+			if command_name == command.name or command_name in command.aliases:
+				try:
+					with open(f"docs/{command.name}/title.txt", "r") as title:
+						with open(f"docs/{command.name}/description.txt", "r") as desc:
+							embed = discord.Embed(title=title.read(),description=desc.read())
+					await ctx.send(embed=embed)
+				except FileNotFoundError:
+					ctx.send("Sorry, the command you entered does not exist.")
+					pass
+	else:
+		embed = discord.Embed(title="Commands")
+		for command in bot.commands:
+			embed.add_field(name=f"-{command.name}",value=f"Type `-help {command.name}`")
+		await ctx.send(embed=embed)
+		# Show overviews
 
 bot.run(TOKEN)

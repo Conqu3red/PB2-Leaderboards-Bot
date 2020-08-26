@@ -1,0 +1,23 @@
+Description: Returns leaderboard for specified level, with user applied offsets/filters
+
+Examples:
+-leaderboard 1-05c
+-leaderboard 4-7 --price=$15,000
+-leaderboard 3-13 --unbreaking --user=bolt986
+-lb 5-01c --unbreaking --position=56
+
+
+Parameters are indicated with <angle brackets> for required fields and [square brackets] for optional fields.
+
+Parameters:
+-<Level> Required |  The campaign level number for the level being requested. Example: 1-2c for world 1, level 2, challenge
+
+-[--unbreaking] Optional |  to indicate you only want unbreaking scores pass this flag as --unbreaking
+-[--position] Optional |  Indicates a position you would like to see:  Example: 47
+ - Valid Values: Numbers between 0 and 1000
+
+-[--price] Optional | Will start at the point in the level’s leaderboard with this price: Example: $16,560
+	- Default Value: (nothing)
+
+-[--user] Optional | Show Leaderboard at the point where a specified User appears: Example: Bolt986
+	- Default Value: (nothing)

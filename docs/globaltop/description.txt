@@ -1,0 +1,12 @@
+Description: Get the global leaderboard to see who is the best of the best at cheap solutions to PB2 levels
+
+Parameters are indicated with <angle brackets> for required fields and [square brackets] for optional fields.
+
+Parameters:
+-[--unbreaking] Optional |  to indicate you only want unbreaking scores pass this flag as --unbreaking
+
+-[--type] Optional | Indicates the types of levels accounted into the global leaderboard
+	- Default Value: all
+	- Valid Values: [all, regular, challenge]
+-[--user] Optional | Show Leaderboard at the point where a specified User appears: Example: Bolt986
+	- Default Value: (nothing)
