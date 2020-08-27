@@ -5,7 +5,8 @@ attrs==19.3.0
 certifi==2020.6.20
 chardet==3.0.4
 DateTime==4.3
-discord-ext-menus==1.0.0a26+g84caae8
+# discord-ext-menus==1.0.0a26+g84caae8
+git+https://github.com/Rapptz/discord-ext-menus
 discord-flags==2.1.1
 discord.py==1.4.1
 dotenv-python==0.0.1

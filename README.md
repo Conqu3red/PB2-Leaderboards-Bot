@@ -14,6 +14,36 @@ Requires python 3.8 to run *(3.3 - 3.6 might work)*
 
 [Python 3.8 via Microsoft Store](https://www.microsoft.com/en-us/p/python-38/9mssztt1n39l)
 
+For the code to run properly you will be required to create a file called `.env`. This file will need to contain:
+
+```conf
+DISCORD_TOKEN=YOUR_TOKEN
+```
+
+Where `YOUR_TOKEN` is a Discord Bot token. [Creating a Discord Bot](https://discord.com/developers/docs/intro#bots-and-apps)
+
+## Recommended Installation Method:
+
+Install venv, then enable it in the project:
+
+```sh
+python3 -m venv env
+```
+
+Then to enter the Virtual Envirornment:
+
+```sh
+source env/bin/activate
+```
+
+To install required dependencies, use the below in the (env):
+
+```sh
+pip install -r requirements.txt
+```
+
+----------
+
 Dependencies:
 |Name               |Version            |
 |-------------------|-------------------|
@@ -38,14 +68,11 @@ Dependencies:
 | zope.interface    | 5.1.0             |
 
 To install required dependencies:
-```
+
+```sh
 pip install -r requirements.txt
 ```
-For the code to run properly you will be required to create a file called `.env`. This file will need to contain:
-```
-DISCORD_TOKEN=YOUR_TOKEN
-```
-Where `YOUR_TOKEN` is a Discord Bot token. [Creating a Discord Bot](https://discord.com/developers/docs/intro#bots-and-apps)
+
 # Development
 Want to contribute? Great!
 # License
