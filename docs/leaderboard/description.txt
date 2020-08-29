@@ -16,7 +16,7 @@ Parameters:
 -[--position] Optional |  Indicates a position you would like to see:  Example: 47
  - Valid Values: Numbers between 0 and 1000
 
--[--price] Optional | Will start at the point in the level’s leaderboard with this price: Example: $16,560
+-[--price] Optional | Will start at the point in the level's leaderboard with this price: Example: $16,560
 	- Default Value: (nothing)
 
 -[--user] Optional | Show Leaderboard at the point where a specified User appears: Example: Bolt986

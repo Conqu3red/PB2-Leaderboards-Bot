@@ -35,6 +35,10 @@ Then to enter the Virtual Envirornment:
 ```sh
 source env/bin/activate
 ```
+On Windows:
+```
+.\env\Scripts\activate
+```
 
 To install required dependencies, use the below in the (env):
 

@@ -309,7 +309,7 @@ bot = commands.Bot(command_prefix='-')
 @flags.add_flag("--user", type=str)
 @flags.add_flag("--price")
 
-@flags.command(name='leaderboard', pass_context=True,aliases=["lb"],help='Get top leaderboard for a level\n ADD DOCUMENTATION HERE')
+@flags.command(name='leaderboard', pass_context=True,aliases=["lb"],help='Shows the leaderboard for a level')
 
 async def leaderboard(ctx, level, **flags):
 
@@ -410,7 +410,7 @@ class GeneralLeaderboardViewer(menus.ListPageSource):
 
 
 @flags.add_flag("--unbreaking", action="store_true", default=False)
-@flags.command(name='profile',help='Get the score of a user on every level.')
+@flags.command(name='profile',help='Shows Stats about the provided user.')
 async def profile(ctx, user, **flags):
 	nobreaks = flags["unbreaking"]
 	message = await ctx.send(
@@ -506,7 +506,7 @@ class ProfileViewer(menus.ListPageSource):
 
 
 @flags.add_flag("--unbreaking", action="store_true", default=False)
-@flags.command(name='milestones',help='Get Milestones for a given level')
+@flags.command(name='milestones',help='Shows Milestones for a given level')
 async def milestones(ctx, level, **flags):
 	nobreaks = flags["unbreaking"]
 	level_id = get_level_id(level)
@@ -543,7 +543,7 @@ bot.add_command(milestones)
 @flags.add_flag("--type", type=str, default="all")
 @flags.add_flag("--user", type=str)
 
-@flags.command(name='globaltop',help='Get Global Leaderboard')
+@flags.command(name='globaltop',help='Shows the Global Leaderboard.')
 
 async def globaltop(ctx, **flags):
 	offset = 0
@@ -628,7 +628,7 @@ class GlobalLeaderboardViewer(menus.ListPageSource):
 @flags.add_flag("--position", type=int, default=0)
 @flags.add_flag("--user", type=str)
 @flags.add_flag("--price")
-@flags.command(name='weekly',help='Command Not Complete - Don\'t use')
+@flags.command(name='weekly',help='Show Weekly Challenge Leaderboards.')
 #@commands.cooldown(1, 5, commands.BucketType.user)
 
 async def weeklyChallenge(ctx, **flags):
@@ -748,21 +748,26 @@ bot.remove_command("help")
 
 async def help(ctx, command_name=None):
 	if command_name:
-		# Means there is a command_name parameter
+		# assuming there is a command_name parameter
 		for command in bot.commands:
 			if command_name == command.name or command_name in command.aliases:
 				try:
 					with open(f"docs/{command.name}/title.txt", "r") as title:
 						with open(f"docs/{command.name}/description.txt", "r") as desc:
-							embed = discord.Embed(title=title.read(),description=desc.read())
+							title_data = title.read()
+							desc_data = desc.read()
+							if title_data and desc_data:
+								embed = discord.Embed(title=title_data,description=desc_data)
+							else:
+								raise FileNotFoundError
 					await ctx.send(embed=embed)
 				except FileNotFoundError:
-					ctx.send("Sorry, the command you entered does not exist.")
+					await ctx.send("Sorry, the command requested has no documentation associated with it and/or the command does not exist.")
 					pass
 	else:
 		embed = discord.Embed(title="Commands")
 		for command in bot.commands:
-			embed.add_field(name=f"-{command.name}",value=f"Type `-help {command.name}`")
+			embed.add_field(name=f"-{command.name}",value=f"{command.help}\nDocumentation: `-help {command.name}`")
 		await ctx.send(embed=embed)
 		# Show overviews
 
