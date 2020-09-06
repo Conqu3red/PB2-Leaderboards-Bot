@@ -41,6 +41,14 @@ identifiers = {
 "5c": ["VJGKB","AgrJr","ApQj2","V6BRD","nLar9","bx3E5","VzJ2G","nQm4e","bdaJr","Av8NP","bNdLo","b2Z5w","ArdM3","V45eQ","VPeKo","b8zGP"], #World 5c
 "6":  ["bOeMR","A5XOx","nR5Re","bm2OL","b7WRR","Vl2Wp","VeDY5","AGvLD","AaE79","bqe7e","b3Y34","nXvLa","ABND7","Vwa8y","A0QrO","Aor26"]	 #World 6
 }
+def time_since_reload(t):
+	a = datetime.datetime.timestamp(datetime.datetime.now(tz=datetime.timezone.utc)) - t.replace(tzinfo=datetime.timezone.utc).timestamp()
+	ret = f"{int(a//60)}m ago"
+	if a/60 > 59:
+		ret = f"{int((a/60)//60)}" + ret
+	ret = " • " + ret
+	return ret
+
 
 def get_level_id(shorthand_levelname):
 	global identifiers
@@ -384,15 +392,14 @@ class GeneralLeaderboardViewer(menus.ListPageSource):
 		offset = (menu.current_page * self.per_page) + self.offs
 		embed = discord.Embed(
 			title=f"Leaderboard for {self.level} {'(Unbreaking)' if self.unbreaking else ''}",
-			colour=discord.Colour(0x3b12ef),
-			timestamp=self.reload_time # or any other datetime type format.
+			colour=discord.Colour(0x3b12ef)
 		)
 		if self.is_weekly_challenge and self.thumbnail_url != None:
 			embed.set_thumbnail(
 				url=self.thumbnail_url
 			)
 		embed.set_footer(
-			text=f"cached leaderboards for {self.level} last updated",
+			text=f"cached leaderboards for {self.level} last updated{time_since_reload(self.reload_time)}",
 		)
 		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
 		embed.set_author(
@@ -450,8 +457,7 @@ class ProfileViewer(menus.ListPageSource):
 			embed = discord.Embed(
 				title=f"Profile for: {entries[0]['owner']}{' (Unbreaking)' if self.unbreaking else ''}{' (Stats)' if menu.current_page == 0 else ''}",
 				description="Showing Stats page. Press :arrow_forward: in reactions to see scores for each level.",
-				colour=discord.Colour(0x3b12ef),
-				timestamp=datetime.datetime.now() # or any other datetime type format.
+				colour=discord.Colour(0x3b12ef)
 			)
 			embed.set_author(
 				name="PB2 Leaderboards Bot", 
@@ -514,7 +520,6 @@ async def milestones(ctx, level, **flags):
 	embed = discord.Embed(
 		title=f"Milestones for {level} {'(Unbreaking)' if nobreaks else ''}",
 		colour=discord.Colour(0x3b12ef),
-		timestamp=datetime.datetime.utcfromtimestamp(refresh_bucket_collated()) # or any other datetime type format.
 	)
 	#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
 	embed.set_author(
@@ -522,7 +527,7 @@ async def milestones(ctx, level, **flags):
 		icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png"
 	)
 	embed.set_footer(
-		text=f"Milestone cache last updated",
+		text=f"Milestone cache last updated {time_since_reload(datetime.datetime.utcfromtimestamp(refresh_bucket_collated()))}",
 	)
 
 	for milestone in milestones:
@@ -605,8 +610,7 @@ class GlobalLeaderboardViewer(menus.ListPageSource):
 		offset = (menu.current_page * self.per_page) + self.offs
 		embed = discord.Embed(
 			title=f"Global Leaderboard ({self.level_type} levels) {'(Unbreaking)' if self.unbreaking else ''}",
-			colour=discord.Colour(0x3b12ef),
-			timestamp=datetime.datetime.now() # or any other datetime type format.
+			colour=discord.Colour(0x3b12ef)
 		)
 		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
 		embed.set_author(
