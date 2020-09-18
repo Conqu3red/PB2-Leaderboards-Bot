@@ -71,11 +71,6 @@ Dependencies:
 | yarl              | 1.5.1             |
 | zope.interface    | 5.1.0             |
 
-To install required dependencies:
-
-```sh
-pip install -r requirements.txt
-```
 
 # Development
 Want to contribute? Great!
