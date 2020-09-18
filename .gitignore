@@ -6,3 +6,4 @@ data/*.json
 todo.txt
 .env
 env
+pinned.md

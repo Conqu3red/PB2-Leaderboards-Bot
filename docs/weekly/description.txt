@@ -10,7 +10,7 @@ Examples:
 Parameters are indicated with <angle brackets> for required fields and [square brackets] for optional fields.
 
 Parameters:
--[--week] Optional | Indicates the week for the challenge level, will show current week if this flasg is not provided
+-[--week] Optional | Indicates the week for the challenge level, will show current week if this flag is not provided
 
 -[--unbreaking] Optional |  to indicate you only want unbreaking scores pass this flag as --unbreaking
 
