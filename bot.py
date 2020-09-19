@@ -692,7 +692,7 @@ async def weeklyChallenge(ctx, **flags):
 					break
 				if entry["rank"] != prev:
 					prev = entry["rank"]
-		pages = menus.MenuPages(source=GeneralLeaderboardViewer(lb,challenge_weeks[week]["title"],offset,flags["unbreaking"], datetime.datetime.utcfromtimestamp(refresh_data(level_id)), True, challenge_weeks[week]["preview"]), clear_reactions_after=True)
+		pages = menus.MenuPages(source=GeneralLeaderboardViewer(lb,challenge_weeks[week]["title"],offset,flags["unbreaking"], refresh_data(level_id), True, challenge_weeks[week]["preview"]), clear_reactions_after=True)
 		await pages.start(ctx)
 	else:
 		error["occurred"] = True
@@ -728,8 +728,7 @@ async def on_command_error(ctx, error):
 		pass
 
 	elif isinstance(error, send_help):
-		_help = await send_cmd_help(ctx)
-		await ctx.send(embed=_help)
+		await ctx.invoke(bot.get_command('help'), command_name=str(ctx.command))
 
 	elif isinstance(error, commands.CommandOnCooldown):
 		await ctx.send(f'This command is on cooldown. Please wait {error.retry_after:.2f}s')
