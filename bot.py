@@ -102,6 +102,7 @@ def get_top(leaderboard_id, unbroken=False):
 		return formatted
 
 def find_user(leaderboard_id, user, unbroken=False):
+	# WARNING this function is depreciated - this functionality is in the leaderboard function
 	refresh_data(leaderboard_id)
 	referer = "any"
 	if unbroken:
@@ -142,7 +143,7 @@ def create_profile(user, unbroken):
 						r = rank-tied
 					else:
 						tied = 0
-				if score["owner"]["display_name"] == user:
+				if score["owner"]["display_name"].lower() == user.lower():
 					found = True
 					this_level = {
 								"owner":user,
@@ -334,7 +335,7 @@ async def leaderboard(ctx, level, **flags):
 		lb = get_top(level_id, flags["unbreaking"])
 		if flags["user"] != None and flags["price"] == None and flags["position"] == 0: # Position Command
 			for pos,score in enumerate(lb):
-				if score['display_name'] == flags["user"]:
+				if score['display_name'].lower() == flags["user"].lower():
 					offset = pos
 					break
 		elif flags["price"] != None and flags["position"] == 0 and flags["user"] == None:
@@ -435,7 +436,7 @@ async def profile(ctx, user, **flags):
 		global_leaderboard,id_to_display_names = get_global_leaderboard(nobreaks,level_type)
 		if user != None:
 				for pos,itm in enumerate(list(global_leaderboard.items())):
-					if id_to_display_names[itm[0]] == user:
+					if id_to_display_names[itm[0]].lower() == user.lower():
 						global_positions[level_type] = itm[1]
 						break
 	await message.delete()
@@ -568,7 +569,7 @@ async def globaltop(ctx, **flags):
 	
 	if flags["user"] != None:
 			for pos,itm in enumerate(list(global_leaderboard.items())):
-				if id_to_display_names[itm[0]] == flags["user"]:
+				if id_to_display_names[itm[0]].lower() == flags["user"].lower():
 					offset = pos
 					break
 	embed = discord.Embed(
@@ -672,7 +673,7 @@ async def weeklyChallenge(ctx, **flags):
 		lb = get_top(level_id, flags["unbreaking"])
 		if flags["user"] != None and flags["price"] == None and flags["position"] == 0: # Position Command
 			for pos,score in enumerate(lb):
-				if score['display_name'] == flags["user"]:
+				if score['display_name'].lower() == flags["user"].lower():
 					offset = pos
 					break
 		elif flags["price"] != None and flags["position"] == 0 and flags["user"] == None:
