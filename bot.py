@@ -42,7 +42,7 @@ identifiers = {
 "6":  ["bOeMR","A5XOx","nR5Re","bm2OL","b7WRR","Vl2Wp","VeDY5","AGvLD","AaE79","bqe7e","b3Y34","nXvLa","ABND7","Vwa8y","A0QrO","Aor26"]	 #World 6
 }
 def time_since_reload(t):
-	seconds = datetime.datetime.timestamp(datetime.datetime.now()) - t.timestamp()
+	seconds = time.time() - t
 	seconds = seconds % (24 * 3600) 
 	hour = seconds // 3600
 	seconds %= 3600
@@ -354,7 +354,7 @@ async def leaderboard(ctx, level, **flags):
 					break
 				if entry["rank"] != prev:
 					prev = entry["rank"]
-		pages = menus.MenuPages(source=GeneralLeaderboardViewer(lb,level,offset,flags["unbreaking"], datetime.datetime.utcfromtimestamp(refresh_data(level_id))), clear_reactions_after=True)
+		pages = menus.MenuPages(source=GeneralLeaderboardViewer(lb,level,offset,flags["unbreaking"], refresh_data(level_id)), clear_reactions_after=True)
 		await pages.start(ctx)
 	else:
 		error["occurred"] = True
