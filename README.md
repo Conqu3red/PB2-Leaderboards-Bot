@@ -39,6 +39,7 @@ On Windows:
 ```
 .\env\Scripts\activate
 ```
+[How to set up venv](https://docs.python.org/3/tutorial/venv.html#creating-virtual-environments)
 
 To install required dependencies, use the below in the (env):
 
@@ -74,8 +75,17 @@ Dependencies:
 
 # Development
 Want to contribute? Great!
+
+The Poly Bridge 2 Leaderboards Discord Bot has the aim of presenting the data from the PB2 Leaderboards in a format that is accessible to everyone. The inspiration for this project was partially taken from Bolt986's Leaderboard Fun Spreadsheet and my interest in the game's leaderboard data. 
+
+I am open to feedback regarding the Discord Bot and feature suggestions will be considered. I am also open to contributions to this project.
+
+**Please note** that I made this bot in my spare time so please be patient regarding a response or feature addition.
 # License
 See LICENSE.md
+
+# Future Plans
+Feature plans / additions will be noted here or on a projects board in this repository.
 
 # Credits
 
