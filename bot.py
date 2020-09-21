@@ -351,11 +351,20 @@ async def leaderboard(ctx, level, **flags):
 			price = parse_price_input(flags["price"])
 			offset = 0
 			prev = 0
+			found_price = False
 			for c,entry in enumerate(lb):
 				if prev <= price and entry["value"] >= price:
 					offset = c
+					found_price = True
 					break
 				prev = entry["value"]
+			if not found_price:
+				embed = discord.Embed(
+					title=f"Price Out of top 1000",
+					description="There are no scores at that price in the top 1000.",
+					colour=discord.Colour(0xff0000),
+				)
+				await ctx.send(embed=embed)
 		else: # Calculate offset based on passed position and ties
 			prev = 0
 			for c,entry in enumerate(lb):
@@ -548,7 +557,7 @@ async def milestones(ctx, level, **flags):
 		icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png"
 	)
 	embed.set_footer(
-		text=f"Milestone cache last updated {time_since_reload(datetime.datetime.utcfromtimestamp(refresh_bucket_collated()))}",
+		text=f"Milestone cache last updated {time_since_reload(refresh_bucket_collated())}",
 	)
 
 	for milestone in milestones:
@@ -591,6 +600,7 @@ async def globaltop(ctx, **flags):
 			for pos,itm in enumerate(list(global_leaderboard.items())):
 				if id_to_display_names[itm[0]].lower() == flags["user"].lower():
 					offset = pos
+					found_user = True
 					break
 			if not found_user:
 				embed = discord.Embed(
@@ -703,6 +713,7 @@ async def weeklyChallenge(ctx, **flags):
 			for pos,score in enumerate(lb):
 				if score['display_name'].lower() == flags["user"].lower():
 					offset = pos
+					found_user = True
 					break
 			if not found_user:
 				embed = discord.Embed(
@@ -715,11 +726,20 @@ async def weeklyChallenge(ctx, **flags):
 			price = parse_price_input(flags["price"])
 			offset = 0
 			prev = 0
+			found_price = False
 			for c,entry in enumerate(lb):
 				if prev <= price and entry["value"] >= price:
 					offset = c
+					found_price = True
 					break
 				prev = entry["value"]
+			if not found_price:
+				embed = discord.Embed(
+					title=f"Price Out of top 1000",
+					description="There are no scores at that price in the top 1000.",
+					colour=discord.Colour(0xff0000),
+				)
+				await ctx.send(embed=embed)
 		else: # Calculate offset based on passed position and ties
 			prev = 0
 			for c,entry in enumerate(lb):
