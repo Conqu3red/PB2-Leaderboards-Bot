@@ -48,7 +48,7 @@ def time_since_reload(t):
 	seconds %= 3600
 	minutes = seconds // 60
 	seconds %= 60 
-	return " • %dh %02dm" % (hour, minutes)
+	return " • %dh %02dm ago" % (hour, minutes)
 
 
 def get_level_id(shorthand_levelname):
@@ -334,10 +334,19 @@ async def leaderboard(ctx, level, **flags):
 
 		lb = get_top(level_id, flags["unbreaking"])
 		if flags["user"] != None and flags["price"] == None and flags["position"] == 0: # Position Command
+			found_user = False
 			for pos,score in enumerate(lb):
 				if score['display_name'].lower() == flags["user"].lower():
 					offset = pos
+					found_user = True
 					break
+			if not found_user:
+				embed = discord.Embed(
+					title=f"User Not found",
+					description="The user you are looking for is not in the top 1000 for this level or you might have mistyped their username.",
+					colour=discord.Colour(0xff0000),
+				)
+				await ctx.send(embed=embed)
 		elif flags["price"] != None and flags["position"] == 0 and flags["user"] == None:
 			price = parse_price_input(flags["price"])
 			offset = 0
@@ -438,8 +447,17 @@ async def profile(ctx, user, **flags):
 				for pos,itm in enumerate(list(global_leaderboard.items())):
 					if id_to_display_names[itm[0]].lower() == user.lower():
 						global_positions[level_type] = itm[1]
+						global_positions[level_type]["percentile"] = itm[1]["rank"]/list(global_leaderboard.items())[-1][1]["rank"]
 						break
 	await message.delete()
+	if len(list(global_positions.keys())) == 0:
+		embed = discord.Embed(
+			title=f"User Not found",
+			description="The user you are looking for has no scores in the top 1000 for any level or you might have mistyped their username.",
+			colour=discord.Colour(0xff0000),
+		)
+		await ctx.send(embed=embed)
+		return
 	pages = menus.MenuPages(source=ProfileViewer(profile,flags["unbreaking"],global_positions), clear_reactions_after=True)
 	await pages.start(ctx)
 
@@ -467,7 +485,8 @@ class ProfileViewer(menus.ListPageSource):
 			)
 			global_pos_formatted = f""
 			for global_score in self.global_positions.items():
-				global_pos_formatted += f"{global_score[0]}: #{global_score[1]['rank']+1} ({global_score[1]['score']})\n"
+				percent = "{:.0%}".format(math.ceil(global_score[1]["percentile"]*100)/100)
+				global_pos_formatted += f"{global_score[0]}: #{global_score[1]['rank']+1} ({global_score[1]['score']}) (Top {percent})\n"
 			if len(global_pos_formatted) != 0:
 				embed.add_field(
 						name=f"Global Leaderboard Positions",
@@ -568,10 +587,18 @@ async def globaltop(ctx, **flags):
 	global_leaderboard,id_to_display_names = get_global_leaderboard(nobreaks,level_type)
 	
 	if flags["user"] != None:
+			found_user = False
 			for pos,itm in enumerate(list(global_leaderboard.items())):
 				if id_to_display_names[itm[0]].lower() == flags["user"].lower():
 					offset = pos
 					break
+			if not found_user:
+				embed = discord.Embed(
+					title=f"User Not found",
+					description="The user you are looking for is not on this global leaderboard or you might have mistyped their username.",
+					colour=discord.Colour(0xff0000),
+				)
+				await ctx.send(embed=embed)
 	embed = discord.Embed(
 			title=f"Global Leaderboard:",
 			colour=discord.Colour(0x3b12ef)
@@ -672,10 +699,18 @@ async def weeklyChallenge(ctx, **flags):
 
 		lb = get_top(level_id, flags["unbreaking"])
 		if flags["user"] != None and flags["price"] == None and flags["position"] == 0: # Position Command
+			found_user = False
 			for pos,score in enumerate(lb):
 				if score['display_name'].lower() == flags["user"].lower():
 					offset = pos
 					break
+			if not found_user:
+				embed = discord.Embed(
+					title=f"User Not found",
+					description="The user you are looking for is not in the top 1000 for this level or you might have mistyped their username.",
+					colour=discord.Colour(0xff0000),
+				)
+				await ctx.send(embed=embed)
 		elif flags["price"] != None and flags["position"] == 0 and flags["user"] == None:
 			price = parse_price_input(flags["price"])
 			offset = 0
