@@ -146,7 +146,7 @@ def create_profile(user, unbroken):
 				if score["owner"]["display_name"].lower() == user.lower():
 					found = True
 					this_level = {
-								"owner":user,
+                                "owner": score["owner"]["display_name"],
 								"level":level,
 								"rank":r+1,
 								"price":"${:,}".format(score["value"]),
@@ -830,5 +830,16 @@ async def help(ctx, command_name=None):
 			embed.add_field(name=f"-{command.name}",value=f"{command.help}\nDocumentation: `-help {command.name}`")
 		await ctx.send(embed=embed)
 		# Show overviews
+@bot.event
+async def on_message(message):
+	if isinstance(message.channel, discord.DMChannel):
+            return
+	if message.author.bot:
+            return
+	await bot.process_commands(message)
+
+game = discord.Game("with -help")
+bot.change_presence(status=bot.Status.idle, activity=game)
 
 bot.run(TOKEN)
+loop = asyncio.get_event_loop()
