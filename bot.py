@@ -546,32 +546,42 @@ class ProfileViewer(menus.ListPageSource):
 async def milestones(ctx, level, **flags):
 	nobreaks = flags["unbreaking"]
 	level_id = get_level_id(level)
-	milestones = get_milestones(level_id, nobreaks)
-	embed = discord.Embed(
-		title=f"Milestones for {level} {'(Unbreaking)' if nobreaks else ''}",
-		colour=discord.Colour(0x3b12ef),
-	)
-	#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
-	embed.set_author(
-		name="PB2 Leaderboards Bot", 
-		icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png"
-	)
-	embed.set_footer(
-		text=f"Milestone cache last updated {time_since_reload(refresh_bucket_collated())}",
-	)
+	if level_id != INVALID_LEVEL_TEXT:
+		milestones = get_milestones(level_id, nobreaks)
+		embed = discord.Embed(
+			title=f"Milestones for {level} {'(Unbreaking)' if nobreaks else ''}",
+			colour=discord.Colour(0x3b12ef),
+		)
+		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
+		embed.set_author(
+			name="PB2 Leaderboards Bot", 
+			icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png"
+		)
+		embed.set_footer(
+			text=f"Milestone cache last updated {time_since_reload(refresh_bucket_collated())}",
+		)
 
-	for milestone in milestones:
-		if milestone != None:
-			startValue = "${:,}".format(milestone["startValue"])
-			endValue = "${:,}".format(milestone["endValue"])
-			embed.add_field(
-				name=f"Top {milestone['percent']}%",
-				value=f"Above #{milestone['endRank']} ({endValue})",
-				inline=True
-			)
-	await ctx.send(
-		embed=embed
-	)
+		for milestone in milestones:
+			if milestone != None:
+				startValue = "${:,}".format(milestone["startValue"])
+				endValue = "${:,}".format(milestone["endValue"])
+				embed.add_field(
+					name=f"Top {milestone['percent']}%",
+					value=f"Above #{milestone['endRank']} ({endValue})",
+					inline=True
+				)
+		await ctx.send(
+			embed=embed
+		)
+	else:
+		embed = discord.Embed(
+			title=f"An Error Occurred.",
+			description=INVALID_LEVEL_TEXT,
+			colour=discord.Colour(0xff0000),
+		)
+		await ctx.send(
+			embed=embed
+		)
 
 bot.add_command(milestones)
 @flags.add_flag("--unbreaking", action="store_true", default=False)
@@ -769,10 +779,6 @@ async def weeklyChallenge(ctx, **flags):
 bot.add_command(weeklyChallenge)
 
 
-@bot.event
-async def on_ready():
-	print("[Bot] Connected to Discord!")
-	#await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="Your commands"))
 
 
 @bot.event
@@ -838,8 +844,12 @@ async def on_message(message):
             return
 	await bot.process_commands(message)
 
-game = discord.Game("with -help")
-bot.change_presence(status=bot.Status.idle, activity=game)
+
+@bot.event
+async def on_ready():
+	print("[Bot] Connected to Discord!")
+	await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="-help"))
+
 
 bot.run(TOKEN)
 loop = asyncio.get_event_loop()
