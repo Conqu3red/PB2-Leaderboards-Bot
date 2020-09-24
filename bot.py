@@ -190,8 +190,8 @@ async def profile(ctx, user, **flags):
 		await ctx.send(embed=embed)
 		return
 	e = time.time()
-	print("Time to get profile:", t_profile_made-s)
-	print("Time to get global scores:", e-t_profile_made)
+	#print("Time to get profile:", t_profile_made-s)
+	#print("Time to get global scores:", e-t_profile_made)
 	pages = menus.MenuPages(source=ProfileViewer(profile,flags["unbreaking"],global_positions, owner), clear_reactions_after=True)
 	await pages.start(ctx)
 
