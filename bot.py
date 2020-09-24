@@ -125,6 +125,7 @@ def create_profile(user, unbroken):
 		referer = "unbroken"
 	global levels
 	generated = []
+	owner = ""
 	for level in levels:
 		#print(level)
 		leaderboard_id = get_level_id(level)
@@ -144,6 +145,7 @@ def create_profile(user, unbroken):
 					else:
 						tied = 0
 				if score["owner"]["display_name"].lower() == user.lower():
+					owner = score["owner"]["display_name"]
 					found = True
 					this_level = {
                                 "owner": score["owner"]["display_name"],
@@ -163,7 +165,7 @@ def create_profile(user, unbroken):
 			generated.append(this_level)
 			#print(this_level)
 	#print(joined)
-	return generated
+	return generated, owner
 
 
 levels = []
@@ -285,16 +287,18 @@ def get_global_leaderboard(unbroken,level_type="all"):
 	referer = "any"
 	if unbroken:
 		referer = "unbroken"
+	start_score = 100*len(levels)
 	for level in levels:
 		#print(level)
 		leaderboard_id = get_level_id(level) # get leaderboard id level
 		current_board = get_top(leaderboard_id, unbroken) # get the leaderboard of level
 		for score in current_board:
-			if score["owner"]["id"] not in leaderboard.keys():
-				leaderboard[score["owner"]["id"]] = 100*len(levels)
+			if not leaderboard.get(score["owner"]["id"], None):
 				id_to_display_names[score["owner"]["id"]] = score["owner"]["display_name"]
+				leaderboard[score["owner"]["id"]] = start_score
 			leaderboard[score["owner"]["id"]] += int(rank_to_score[score["rank"]])-100
-
+			#leaderboard[score["owner"]["id"]] = leaderboard.get(score["owner"]["id"], start_score)+int(rank_to_score[score["rank"]])-100
+			
 	leaderboard_sorted = {user_id: score for user_id, score in sorted(leaderboard.items(), key=lambda item: item[1])}
 	leaderboard_with_ranks = {}
 	for c,item in enumerate(leaderboard_sorted.items()):
@@ -439,6 +443,7 @@ class GeneralLeaderboardViewer(menus.ListPageSource):
 @flags.add_flag("--unbreaking", action="store_true", default=False)
 @flags.command(name='profile',help='Shows Stats about the provided user.')
 async def profile(ctx, user, **flags):
+	s = time.time()
 	nobreaks = flags["unbreaking"]
 	message = await ctx.send(
 		embed = discord.Embed(
@@ -446,8 +451,9 @@ async def profile(ctx, user, **flags):
 			colour=discord.Colour(0x3b12ef)
 			)
 		)
-	profile_temp = create_profile(user, nobreaks)
+	profile_temp, owner = create_profile(user, nobreaks)
 	profile = [k for k in profile_temp[:8]] + profile_temp # add 8 filler entries for the stats page
+	t_profile_made = time.time()
 	# find users positions on global leaderboards:
 	global_positions = {}
 	for level_type in ["all","regular","challenge"]:
@@ -456,7 +462,6 @@ async def profile(ctx, user, **flags):
 				for pos,itm in enumerate(list(global_leaderboard.items())):
 					if id_to_display_names[itm[0]].lower() == user.lower():
 						global_positions[level_type] = itm[1]
-						global_positions[level_type]["percentile"] = itm[1]["rank"]/list(global_leaderboard.items())[-1][1]["rank"]
 						break
 	await message.delete()
 	if len(list(global_positions.keys())) == 0:
@@ -467,16 +472,20 @@ async def profile(ctx, user, **flags):
 		)
 		await ctx.send(embed=embed)
 		return
-	pages = menus.MenuPages(source=ProfileViewer(profile,flags["unbreaking"],global_positions), clear_reactions_after=True)
+	e = time.time()
+	#print("Time to get profile:", t_profile_made-s)
+	#print("Time to get global scores:", e-t_profile_made)
+	pages = menus.MenuPages(source=ProfileViewer(profile,flags["unbreaking"],global_positions, owner), clear_reactions_after=True)
 	await pages.start(ctx)
 
 bot.add_command(profile)
 
 class ProfileViewer(menus.ListPageSource):
-	def __init__(self, data, unbreaking, global_positions):
+	def __init__(self, data, unbreaking, global_positions, owner):
 		self.data = data[8:]
 		self.unbreaking = unbreaking
 		self.global_positions = global_positions
+		self.owner = owner
 		super().__init__(data, per_page=8)
 
 	async def format_page(self, menu, entries):
@@ -484,7 +493,7 @@ class ProfileViewer(menus.ListPageSource):
 		
 		if menu.current_page == 0:
 			embed = discord.Embed(
-				title=f"Profile for: {entries[0]['owner']}{' (Unbreaking)' if self.unbreaking else ''}{' (Stats)' if menu.current_page == 0 else ''}",
+				title=f"Profile for: {self.owner}{' (Unbreaking)' if self.unbreaking else ''}{' (Stats)' if menu.current_page == 0 else ''}",
 				description="Showing Stats page. Press :arrow_forward: in reactions to see scores for each level.",
 				colour=discord.Colour(0x3b12ef)
 			)
@@ -494,8 +503,7 @@ class ProfileViewer(menus.ListPageSource):
 			)
 			global_pos_formatted = f""
 			for global_score in self.global_positions.items():
-				percent = "{:.0%}".format(math.ceil(global_score[1]["percentile"]*100)/100)
-				global_pos_formatted += f"{global_score[0]}: #{global_score[1]['rank']+1} ({global_score[1]['score']}) (Top {percent})\n"
+				global_pos_formatted += f"{global_score[0]}: #{global_score[1]['rank']+1} ({global_score[1]['score']})\n"
 			if len(global_pos_formatted) != 0:
 				embed.add_field(
 						name=f"Global Leaderboard Positions",
