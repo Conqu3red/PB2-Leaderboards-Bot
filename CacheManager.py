@@ -2,6 +2,7 @@ import time, datetime
 import os
 import json
 import requests
+from functions import *
 # download_url refers to the location of the leaderboard files
 download_url = "http://dfp529wcvahka.cloudfront.net/manifests/leaderboards/scores/{0}.json"
 weekly_url = "https://dfp529wcvahka.cloudfront.net/manifests/weeklyChallenges.json"
@@ -37,6 +38,10 @@ class CacheManager:
 					self.refresh_data(item[0])
 			self.get_weekly_challenge_ids()
 			self.get_all_files_last_refresh()
+			for global_type in ["all", "regular", "challenge"]:
+				for unb in [True, False]:
+					get_global_leaderboard(unb, global_type)
+					print(f"[CacheManager] Updated Global Leaderboard {global_type},{unb}")
 			print(f"[CacheManager] Next Reload in {datetime.timedelta(seconds=int(max( self.gap - min(list(self.levels_last_refreshed.values())), 0)))}")
 			time.sleep( max( self.gap - min(list(self.levels_last_refreshed.values())) ,0)  )
 	def get_all_files_last_refresh(self,override=False):
