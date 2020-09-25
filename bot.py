@@ -35,6 +35,9 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 
 bot = commands.Bot(command_prefix='-')
 
+user_log = {}
+command_list = ["leaderboard", "lb", "profile", "globaltop", "weekly", "milestones", "help"]
+
 @flags.add_flag("--unbreaking",action="store_true", default=False)
 @flags.add_flag("--position", type=int, default=0)
 @flags.add_flag("--user", type=str)
@@ -65,7 +68,7 @@ async def leaderboard(ctx, level, **flags):
 				embed = discord.Embed(
 					title=f"User Not found",
 					description="The user you are looking for is not in the top 1000 for this level or you might have mistyped their username.",
-					colour=discord.Colour(0xff0000),
+					colour=discord.Colour(0xf93a2f),
 				)
 				await ctx.send(embed=embed)
 		elif flags["price"] != None and flags["position"] == 0 and flags["user"] == None:
@@ -83,7 +86,7 @@ async def leaderboard(ctx, level, **flags):
 				embed = discord.Embed(
 					title=f"Price Out of top 1000",
 					description="There are no scores at that price in the top 1000.",
-					colour=discord.Colour(0xff0000),
+					colour=discord.Colour(0xf93a2f),
 				)
 				await ctx.send(embed=embed)
 		else: # Calculate offset based on passed position and ties
@@ -103,7 +106,7 @@ async def leaderboard(ctx, level, **flags):
 		embed = discord.Embed(
 			title=f"An Error Occurred.",
 			description=error["detail"],
-			colour=discord.Colour(0xff0000),
+			colour=discord.Colour(0xf93a2f),
 		)
 		await ctx.send(
 			embed=embed
@@ -185,7 +188,7 @@ async def profile(ctx, user, **flags):
 		embed = discord.Embed(
 			title=f"User Not found",
 			description="The user you are looking for has no scores in the top 1000 for any level or you might have mistyped their username.",
-			colour=discord.Colour(0xff0000),
+			colour=discord.Colour(0xf93a2f),
 		)
 		await ctx.send(embed=embed)
 		return
@@ -302,7 +305,7 @@ async def milestones(ctx, level, **flags):
 		embed = discord.Embed(
 			title=f"An Error Occurred.",
 			description=INVALID_LEVEL_TEXT,
-			colour=discord.Colour(0xff0000),
+			colour=discord.Colour(0xf93a2f),
 		)
 		await ctx.send(
 			embed=embed
@@ -341,7 +344,7 @@ async def globaltop(ctx, **flags):
 				embed = discord.Embed(
 					title=f"User Not found",
 					description="The user you are looking for is not on this global leaderboard or you might have mistyped their username.",
-					colour=discord.Colour(0xff0000),
+					colour=discord.Colour(0xf93a2f),
 				)
 				await ctx.send(embed=embed)
 	embed = discord.Embed(
@@ -454,7 +457,7 @@ async def weeklyChallenge(ctx, **flags):
 				embed = discord.Embed(
 					title=f"User Not found",
 					description="The user you are looking for is not in the top 1000 for this level or you might have mistyped their username.",
-					colour=discord.Colour(0xff0000),
+					colour=discord.Colour(0xf93a2f),
 				)
 				await ctx.send(embed=embed)
 		elif flags["price"] != None and flags["position"] == 0 and flags["user"] == None:
@@ -472,7 +475,7 @@ async def weeklyChallenge(ctx, **flags):
 				embed = discord.Embed(
 					title=f"Price Out of top 1000",
 					description="There are no scores at that price in the top 1000.",
-					colour=discord.Colour(0xff0000),
+					colour=discord.Colour(0xf93a2f),
 				)
 				await ctx.send(embed=embed)
 		else: # Calculate offset based on passed position and ties
@@ -492,7 +495,7 @@ async def weeklyChallenge(ctx, **flags):
 		embed = discord.Embed(
 			title=f"An Error Occurred.",
 			description=error["detail"],
-			colour=discord.Colour(0xff0000),
+			colour=discord.Colour(0xf93a2f),
 		)
 		await ctx.send(
 			embed=embed
@@ -567,7 +570,22 @@ async def on_message(message):
             return
 	if message.author.bot:
             return
-	await bot.process_commands(message)
+
+	if (message.content.lower().split(" ")[0][1:] in command_list):
+		if message.author.id in user_log.keys():
+			diff_time = (datetime.datetime.now() - user_log[message.author.id]).seconds
+			if diff_time <= 5:
+				embed = discord.Embed(
+					title="Uh oh! You've hit the ratelimit.", 
+					colour=discord.Colour(0xf93a2f), 
+					description="<@" + str(message.author.id) + ">, please wait " + str(5 - diff_time) + " seconds to use the bot..."
+				)
+				await message.channel.send(embed=embed)
+				return
+		user_log[message.author.id] = datetime.datetime.now()
+		await bot.process_commands(message)
+	else:
+		return
 
 
 @bot.event
