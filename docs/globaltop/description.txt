@@ -1,5 +1,11 @@
 Description: Get the global leaderboard to see who is the best of the best at cheap solutions to PB2 levels
 
+Examples:
+-globaltop 
+-globaltop --user="Bolt986" -- Note that quotes are optional for the username 
+-globaltop --user Bolt986 --type challenge
+-globaltop --type=regular --unbreaking
+
 Parameters are indicated with <angle brackets> for required fields and [square brackets] for optional fields.
 
 Parameters:

@@ -1,1 +1,1 @@
--globaltop  [--user] [--type] [--unbreaking]
+-globaltop  [--user "username"] [--type all|regular|challenge] [--unbreaking]

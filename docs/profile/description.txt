@@ -1,5 +1,10 @@
 Description: See stats about the user specified. Navigate through pages by reacting to the arrows to see a user's score on every level.
 
+Examples:
+-profile Bolt986
+-profile "I never finish anyth"
+-profile Conqu3red --unbreaking
+
 Parameters are indicated with <angle brackets> for required fields and [square brackets] for optional fields.
 
 Parameters:

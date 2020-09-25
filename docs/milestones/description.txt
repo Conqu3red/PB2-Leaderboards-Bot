@@ -1,5 +1,9 @@
 Description: Get Milestones (Price/rank required for top n%)
 
+Examples:
+-milestones 1-04
+-milestones 4-3c --unbreaking
+
 Parameters are indicated with <angle brackets> for required fields and [square brackets] for optional fields.
 
 Parameters:

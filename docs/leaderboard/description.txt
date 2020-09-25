@@ -3,7 +3,7 @@ Description: Returns leaderboard for specified level, with user applied offsets/
 Examples:
 -leaderboard 1-05c
 -leaderboard 4-7 --price=$15,000
--leaderboard 3-13 --unbreaking --user=bolt986
+-leaderboard 3-13 --unbreaking --user="Bolt986" -- Note that quotes are optional for the username
 -lb 5-01c --unbreaking --position=56
 
 

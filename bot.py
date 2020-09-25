@@ -133,7 +133,7 @@ class GeneralLeaderboardViewer(menus.ListPageSource):
 		offset = (menu.current_page * self.per_page) + self.offs
 		embed = discord.Embed(
 			title=f"Leaderboard for {self.level} {'(Unbreaking)' if self.unbreaking else ''}",
-			colour=discord.Colour(0x3b12ef)
+			colour=discord.Colour(0x3586ff)
 		)
 		if self.is_weekly_challenge and self.thumbnail_url != None:
 			embed.set_thumbnail(
@@ -165,7 +165,7 @@ async def profile(ctx, user, **flags):
 	message = await ctx.send(
 		embed = discord.Embed(
 			title=f"Processing Data...",
-			colour=discord.Colour(0x3b12ef)
+			colour=discord.Colour(0x3586ff)
 			)
 		)
 	profile_temp, owner = create_profile(user, nobreaks)
@@ -212,11 +212,11 @@ class ProfileViewer(menus.ListPageSource):
 			embed = discord.Embed(
 				title=f"Profile for: {self.owner}{' (Unbreaking)' if self.unbreaking else ''}{' (Stats)' if menu.current_page == 0 else ''}",
 				description="Showing Stats page. Press :arrow_forward: in reactions to see scores for each level.",
-				colour=discord.Colour(0x3b12ef)
+				colour=discord.Colour(0x3586ff)
 			)
 			embed.set_author(
 				name="PB2 Leaderboards Bot", 
-				icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png"
+				icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/758752385244987423.png"
 			)
 			global_pos_formatted = f""
 			for global_score in self.global_positions.items():
@@ -242,7 +242,7 @@ class ProfileViewer(menus.ListPageSource):
 		else:
 			embed = discord.Embed(
 				title=f"Profile for: {entries[0]['owner']}{' (Unbreaking)' if self.unbreaking else ''} {'(Stats)' if menu.current_page == 0 else ''}",
-				colour=discord.Colour(0x3b12ef),
+				colour=discord.Colour(0x3586ff),
 				timestamp=datetime.datetime.now() # or any other datetime type format.
 			)
 			#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
@@ -275,7 +275,7 @@ async def milestones(ctx, level, **flags):
 		milestones = get_milestones(level_id, nobreaks)
 		embed = discord.Embed(
 			title=f"Milestones for {level} {'(Unbreaking)' if nobreaks else ''}",
-			colour=discord.Colour(0x3b12ef),
+			colour=discord.Colour(0x3586ff),
 		)
 		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
 		embed.set_author(
@@ -325,7 +325,7 @@ async def globaltop(ctx, **flags):
 	message = await ctx.send(
 		embed = discord.Embed(
 			title=f"Processing Data...",
-			colour=discord.Colour(0x3b12ef)
+			colour=discord.Colour(0x3586ff)
 			)
 		)
 	global_leaderboard,id_to_display_names = load_global(nobreaks, level_type)
@@ -346,7 +346,7 @@ async def globaltop(ctx, **flags):
 				await ctx.send(embed=embed)
 	embed = discord.Embed(
 			title=f"Global Leaderboard:",
-			colour=discord.Colour(0x3b12ef)
+			colour=discord.Colour(0x3586ff)
 		)
 	embed.set_author(
 		name="PB2 Leaderboards Bot", 
@@ -384,7 +384,7 @@ class GlobalLeaderboardViewer(menus.ListPageSource):
 		offset = (menu.current_page * self.per_page) + self.offs
 		embed = discord.Embed(
 			title=f"Global Leaderboard ({self.level_type} levels) {'(Unbreaking)' if self.unbreaking else ''}",
-			colour=discord.Colour(0x3b12ef)
+			colour=discord.Colour(0x3586ff)
 		)
 		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
 		embed.set_author(

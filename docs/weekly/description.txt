@@ -3,8 +3,8 @@ Description: Returns leaderboard for specified challenge level, with user applie
 Examples:
 -weekly
 -weekly --week=1 --price=$15,000
--weekly --unbreaking --user=bolt986
--weekly --week 2 --unbreaking --position 56
+-weekly --unbreaking --user="bolt986" -- Note that quotes are optional for the username
+-weekly --week 2 --unbreaking --position=56
 
 
 Parameters are indicated with <angle brackets> for required fields and [square brackets] for optional fields.
