@@ -148,7 +148,7 @@ class GeneralLeaderboardViewer(menus.ListPageSource):
 		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
 		embed.set_author(
 			name="PB2 Leaderboards Bot", 
-			icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png"
+			icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/758752385244987423.png"
 		)
 		for entry in entries:
 			embed.add_field(
@@ -251,7 +251,7 @@ class ProfileViewer(menus.ListPageSource):
 			#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
 			embed.set_author(
 				name="PB2 Leaderboards Bot", 
-				icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png"
+				icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/758752385244987423.png"
 			)
 			for c, result in enumerate(entries, start=offset):
 				if result["found"]:
@@ -283,7 +283,7 @@ async def milestones(ctx, level, **flags):
 		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
 		embed.set_author(
 			name="PB2 Leaderboards Bot", 
-			icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png"
+			icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/758752385244987423.png"
 		)
 		embed.set_footer(
 			text=f"Milestone cache last updated {time_since_reload(refresh_bucket_collated())}",
@@ -353,7 +353,7 @@ async def globaltop(ctx, **flags):
 		)
 	embed.set_author(
 		name="PB2 Leaderboards Bot", 
-		icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png"
+		icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/758752385244987423.png"
 	)
 	lb = []
 	for c,itm in enumerate(list(global_leaderboard.items())):
@@ -392,7 +392,7 @@ class GlobalLeaderboardViewer(menus.ListPageSource):
 		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
 		embed.set_author(
 			name="PB2 Leaderboards Bot", 
-			icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/720412997226332271.png"
+			icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/758752385244987423.png"
 		)
 		for c, result in enumerate(entries, start=offset):
 			embed.add_field(
