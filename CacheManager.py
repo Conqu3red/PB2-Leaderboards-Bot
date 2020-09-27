@@ -28,22 +28,43 @@ class CacheManager:
 		pass
 		self.levels_last_refreshed = {}
 		self.gap = 28800 # seconds
+		self.weekly_gap = 3600
 		self.challenge_weeks = {}
 		self.get_weekly_challenge_ids()
 		self.get_all_files_last_refresh()
 		while True:
 			print("[CacheManager] Checking if Cached files need updating...")
-			for item in self.levels_last_refreshed.items():
-				if item[1] > self.gap:
-					self.refresh_data(item[0])
+			for lvl, refresh_time in self.levels_last_refreshed.items():
+				if refresh_time > self.gap and lvl.find("WC.") == -1:
+					self.refresh_data(lvl)
+				if refresh_time > self.weekly_gap and lvl.find("WC.") != -1:
+					self.refresh_data(lvl)
 			self.get_weekly_challenge_ids()
 			self.get_all_files_last_refresh()
 			for global_type in ["all", "regular", "challenge"]:
 				for unb in [True, False]:
 					get_global_leaderboard(unb, global_type)
 					print(f"[CacheManager] Updated Global Leaderboard {global_type},{unb}")
-			print(f"[CacheManager] Next Reload in {datetime.timedelta(seconds=int(max( self.gap - min(list(self.levels_last_refreshed.values())), 0)))}")
-			time.sleep( max( self.gap - min(list(self.levels_last_refreshed.values())) ,0)  )
+			
+			t = min(
+					max( 
+						self.gap - min(
+							 list([t for lvl, t in self.levels_last_refreshed.items() if lvl.find("WC.") == -1])
+						),
+					0
+					),
+					max( 
+						self.weekly_gap - min(
+							 list([t for lvl, t in self.levels_last_refreshed.items() if lvl.find("WC.") != -1])
+						),
+					0
+					)
+				)
+			
+			print(f"[CacheManager] Next Reload in {datetime.timedelta(seconds=int(t))}")
+			
+			time.sleep(t)
+	
 	def get_all_files_last_refresh(self,override=False):
 		global download_url
 		for world in identifiers.values():
