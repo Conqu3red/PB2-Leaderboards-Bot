@@ -32,6 +32,17 @@ identifiers = {
 "5c": ["bx3E5","nLar9","bdaJr","b8zGP","AgrJr","ArdM3","ApQj2","VzJ2G","VJGKB","V45eQ","Av8NP","bNdLo","b2Z5w","nQm4e","V6BRD","VPeKo"], #World 5c
 "6":  ["bOeMR","A5XOx","nR5Re","bm2OL","b7WRR","Vl2Wp","VeDY5","AGvLD","AaE79","bqe7e","b3Y34","nXvLa","ABND7","Vwa8y","A0QrO","Aor26"]	 #World 6
 }
+
+levels = []
+world = 0
+for c in range(2):
+	for world in range(5):
+		for level in range(16):
+			levels.append(f"{world+1}-{level+1}{'c' if c == 1 else ''}")
+for level in range(10): # Only 10 levels in world 6
+	levels.append(f"6-{level+1}")
+#print(levels)
+
 def time_since_reload(t):
 	seconds = time.time() - t
 	seconds = seconds % (24 * 3600) 
@@ -111,6 +122,7 @@ def find_user(leaderboard_id, user, unbroken=False):
 
 
 def create_profile(user, unbroken):
+	user_id = re.search(r"@\w+", user)
 	referer = "any"
 	if unbroken:
 		referer = "unbroken"
@@ -135,7 +147,8 @@ def create_profile(user, unbroken):
 						r = rank-tied
 					else:
 						tied = 0
-				if score["owner"]["display_name"].lower() == user.lower():
+				if (score["owner"]["display_name"].lower() == user.lower()) or (score["owner"]["id"] == user[1:]):
+					#print(score, user)
 					owner = score["owner"]["display_name"]
 					found = True
 					this_level = {
@@ -159,15 +172,7 @@ def create_profile(user, unbroken):
 	return generated, owner
 
 
-levels = []
-world = 0
-for c in range(2):
-	for world in range(5):
-		for level in range(16):
-			levels.append(f"{world+1}-{level+1}{'c' if c == 1 else ''}")
-for level in range(10): # Only 10 levels in world 6
-	levels.append(f"6-{level+1}")
-#print(levels)
+
 
 
 
@@ -309,3 +314,14 @@ def get_global_leaderboard(unbroken,level_type="all"):
 def load_global(nobreaks, level_type):
 	with open(f"data/global_{level_type}_{nobreaks}.json", "r") as f:
 		return json.load(f)
+
+def id_from_user(user):
+	users = []
+	for level in levels:
+		level_id = get_level_id(level)
+		with open(f"data/{level_id}.json", "r") as f:
+			data = json.load(f)
+			for entry in data["any"]["top1000"] + data["unbroken"]["top1000"]:
+				if entry["owner"] not in users and entry["owner"]["display_name"].lower() == user.lower():
+					users.append(entry["owner"])
+	return users

@@ -16,3 +16,12 @@ Parameters:
 	- Valid Values: [all, regular, challenge]
 -[--user] Optional | Show Leaderboard at the point where a specified User appears: Example: Bolt986
 	- Default Value: (nothing)
+	- Passing a user ID:
+		--user @<user id>
+		Example:
+		--user @Vz7JG
+-[--position] Optional |  Indicates a position you would like to see:  Example: 47
+ - Valid Values: Any number between 0 and the last global leaderboard position
+
+-[--score] Optional | Will start at the point in the global leaderboard with this score: Example: 9,000
+	- Default Value: (nothing)

@@ -36,7 +36,7 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 bot = commands.Bot(command_prefix='-')
 
 user_log = {}
-command_list = ["leaderboard", "lb", "profile", "globaltop", "weekly", "milestones", "help"]
+command_list = ["leaderboard", "lb", "profile", "globaltop", "weekly", "milestones", "help","id"]
 
 @flags.add_flag("--unbreaking",action="store_true", default=False)
 @flags.add_flag("--position", type=int, default=0)
@@ -59,11 +59,19 @@ async def leaderboard(ctx, level, **flags):
 		lb = get_top(level_id, flags["unbreaking"])
 		if flags["user"] != None and flags["price"] == None and flags["position"] == 0: # Position Command
 			found_user = False
+			search_for_id = re.search(r"@\w+", flags["user"])
+			
 			for pos,score in enumerate(lb):
-				if score['display_name'].lower() == flags["user"].lower():
-					offset = pos
-					found_user = True
-					break
+				if not search_for_id:
+					if score['display_name'].lower() == flags["user"].lower():
+						offset = pos
+						found_user = True
+						break
+				else:
+					if score['owner']['id'] == flags["user"][1:]:
+						offset = pos
+						found_user = True
+						break
 			if not found_user:
 				embed = discord.Embed(
 					title=f"User Not found",
@@ -163,6 +171,7 @@ class GeneralLeaderboardViewer(menus.ListPageSource):
 @flags.add_flag("--unbreaking", action="store_true", default=False)
 @flags.command(name='profile',help='Shows Stats about the provided user.')
 async def profile(ctx, user, **flags):
+	is_user_id = re.search(r"@\w+", user)
 	s = time.time()
 	nobreaks = flags["unbreaking"]
 	message = await ctx.send(
@@ -176,13 +185,21 @@ async def profile(ctx, user, **flags):
 	t_profile_made = time.time()
 	# find users positions on global leaderboards:
 	global_positions = {}
+	user_id = ""
 	for level_type in ["all","regular","challenge"]:
 		global_leaderboard,id_to_display_names = load_global(nobreaks, level_type)
 		if user != None:
 				for pos,itm in enumerate(list(global_leaderboard.items())):
-					if id_to_display_names[itm[0]].lower() == user.lower():
-						global_positions[level_type] = itm[1]
-						break
+					if not is_user_id:
+						if id_to_display_names[itm[0]].lower() == user.lower():
+							user_id = itm[0]
+							global_positions[level_type] = itm[1]
+							break
+					else:
+						if itm[0] == user[1:]:
+							user_id = itm[0]
+							global_positions[level_type] = itm[1]
+							break
 	await message.delete()
 	if len(list(global_positions.keys())) == 0:
 		embed = discord.Embed(
@@ -195,17 +212,18 @@ async def profile(ctx, user, **flags):
 	e = time.time()
 	#print("Time to get profile:", t_profile_made-s)
 	#print("Time to get global scores:", e-t_profile_made)
-	pages = menus.MenuPages(source=ProfileViewer(profile,flags["unbreaking"],global_positions, owner), clear_reactions_after=True)
+	pages = menus.MenuPages(source=ProfileViewer(profile,flags["unbreaking"],global_positions, owner, user_id), clear_reactions_after=True)
 	await pages.start(ctx)
 
 bot.add_command(profile)
 
 class ProfileViewer(menus.ListPageSource):
-	def __init__(self, data, unbreaking, global_positions, owner):
+	def __init__(self, data, unbreaking, global_positions, owner, user_id):
 		self.data = data[8:]
 		self.unbreaking = unbreaking
 		self.global_positions = global_positions
 		self.owner = owner
+		self.user_id = user_id
 		super().__init__(data, per_page=8)
 
 	async def format_page(self, menu, entries):
@@ -213,7 +231,7 @@ class ProfileViewer(menus.ListPageSource):
 		
 		if menu.current_page == 0:
 			embed = discord.Embed(
-				title=f"Profile for: {self.owner}{' (Unbreaking)' if self.unbreaking else ''}{' (Stats)' if menu.current_page == 0 else ''}",
+				title=f"Profile for: {self.owner}{' (Unbreaking)' if self.unbreaking else ''}{' (Stats)' if menu.current_page == 0 else ''}, ID: `{self.user_id}`",
 				description="Showing Stats page. Press :arrow_forward: in reactions to see scores for each level.",
 				colour=discord.Colour(0x3586ff)
 			)
@@ -244,7 +262,7 @@ class ProfileViewer(menus.ListPageSource):
 				)
 		else:
 			embed = discord.Embed(
-				title=f"Profile for: {entries[0]['owner']}{' (Unbreaking)' if self.unbreaking else ''} {'(Stats)' if menu.current_page == 0 else ''}",
+				title=f"Profile for: {self.owner}{' (Unbreaking)' if self.unbreaking else ''} {'(Stats)' if menu.current_page == 0 else ''}",
 				colour=discord.Colour(0x3586ff),
 				timestamp=datetime.datetime.now() # or any other datetime type format.
 			)
@@ -314,7 +332,9 @@ async def milestones(ctx, level, **flags):
 bot.add_command(milestones)
 @flags.add_flag("--unbreaking", action="store_true", default=False)
 @flags.add_flag("--type", type=str, default="all")
+@flags.add_flag("--position", type=int, default=0)
 @flags.add_flag("--user", type=str)
+@flags.add_flag("--score")
 
 @flags.command(name='globaltop',help='Shows the Global Leaderboard.')
 
@@ -333,20 +353,58 @@ async def globaltop(ctx, **flags):
 		)
 	global_leaderboard,id_to_display_names = load_global(nobreaks, level_type)
 	
-	if flags["user"] != None:
-			found_user = False
-			for pos,itm in enumerate(list(global_leaderboard.items())):
+		
+	if flags["user"] != None and flags["score"] == None and flags["position"] == 0: # Position Command
+		found_user = False
+		search_for_id = re.search(r"@\w+", flags["user"])
+		for pos,itm in enumerate(list(global_leaderboard.items())):
+			if not search_for_id:
 				if id_to_display_names[itm[0]].lower() == flags["user"].lower():
 					offset = pos
 					found_user = True
 					break
-			if not found_user:
-				embed = discord.Embed(
-					title=f"User Not found",
-					description="The user you are looking for is not on this global leaderboard or you might have mistyped their username.",
-					colour=discord.Colour(0xf93a2f),
-				)
-				await ctx.send(embed=embed)
+			else:
+				if itm[0] == flags["user"][1:]:
+					offset = pos
+					found_user = True
+					break
+		if not found_user:
+			embed = discord.Embed(
+				title=f"User Not found",
+				description="The user you are looking for is not on the global leaderboard or you might have mistyped their username.",
+				colour=discord.Colour(0xf93a2f),
+			)
+			await ctx.send(embed=embed)
+	elif flags["score"] != None and flags["position"] == 0 and flags["user"] == None:
+		price = parse_price_input(flags["score"])
+		offset = 0
+		prev = 0
+		found_price = False
+		for c,itm in enumerate(list(global_leaderboard.items())):
+			entry = itm[1]
+			if prev <= price and entry["score"] >= price:
+				offset = c
+				found_price = True
+				break
+			prev = entry["score"]
+		if not found_price:
+			embed = discord.Embed(
+				title=f"Price Out of top 1000",
+				description="There are no scores at that price in the top 1000.",
+				colour=discord.Colour(0xf93a2f),
+			)
+			await ctx.send(embed=embed)
+	else: # Calculate offset based on passed position and ties
+		offset = flags["position"]
+		prev = 0
+		for c,itm in enumerate(list(global_leaderboard.items())):
+			entry = itm[1]
+			if prev <= offset and entry["rank"] >= offset:
+				offset = c
+				break
+			if entry["rank"] != prev:
+				prev = entry["rank"]
+	
 	embed = discord.Embed(
 			title=f"Global Leaderboard:",
 			colour=discord.Colour(0x3586ff)
@@ -448,11 +506,18 @@ async def weeklyChallenge(ctx, **flags):
 		lb = get_top(level_id, flags["unbreaking"])
 		if flags["user"] != None and flags["price"] == None and flags["position"] == 0: # Position Command
 			found_user = False
+			search_for_id = re.search(r"@\w+", flags["user"])
 			for pos,score in enumerate(lb):
-				if score['display_name'].lower() == flags["user"].lower():
-					offset = pos
-					found_user = True
-					break
+				if not search_for_id:
+					if score['display_name'].lower() == flags["user"].lower():
+						offset = pos
+						found_user = True
+						break
+				else:
+					if score['owner']['id'] == flags["user"][1:]:
+						offset = pos
+						found_user = True
+						break
 			if not found_user:
 				embed = discord.Embed(
 					title=f"User Not found",
@@ -506,6 +571,16 @@ async def weeklyChallenge(ctx, **flags):
 
 bot.add_command(weeklyChallenge)
 
+@bot.command(name='id',help='Get the ID of a user')
+async def get_user_id(ctx,user):
+	users = id_from_user(user)
+	formatted = "No Users Found with that name" if users == [] else ""
+	for user in users:
+		formatted += f"`{user['id']} : {user['display_name']}`\n"
+	await ctx.send(formatted)
+
+
+#bot.add_command(get_user_id)
 
 
 

@@ -22,3 +22,7 @@ Parameters:
 
 -[--user] Optional | Show Leaderboard at the point where a specified User appears: Example: Bolt986
 	- Default Value: (nothing)
+	- Passing a user ID:
+		--user @<user id>
+		Example:
+		--user @Vz7JG
