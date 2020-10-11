@@ -129,6 +129,7 @@ def create_profile(user, unbroken):
 	global levels
 	generated = []
 	owner = ""
+	user_decided = ""
 	for level in levels:
 		#print(level)
 		leaderboard_id = get_level_id(level)
@@ -149,16 +150,20 @@ def create_profile(user, unbroken):
 						tied = 0
 				if (score["owner"]["display_name"].lower() == user.lower()) or (score["owner"]["id"] == user[1:]):
 					#print(score, user)
-					owner = score["owner"]["display_name"]
-					found = True
-					this_level = {
-                                "owner": score["owner"]["display_name"],
-								"level":level,
-								"rank":r+1,
-								"price":"${:,}".format(score["value"]),
-								"didBreak":score["didBreak"],
-								"found":True
-								}
+					if not user_decided:
+						#print("Set user to", score["owner"])
+						user_decided = score["owner"]
+					if score["owner"] == user_decided:
+						owner = score["owner"]["display_name"]
+						found = True
+						this_level = {
+                    	            "owner": score["owner"]["display_name"],
+									"level":level,
+									"rank":r+1,
+									"price":"${:,}".format(score["value"]),
+									"didBreak":score["didBreak"],
+									"found":True
+									}
 				prev = score
 			if not found:
 				this_level = {
