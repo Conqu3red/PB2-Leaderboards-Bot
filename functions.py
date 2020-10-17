@@ -33,6 +33,22 @@ identifiers = {
 "6":  ["bOeMR","A5XOx","nR5Re","bm2OL","b7WRR","Vl2Wp","VeDY5","AGvLD","AaE79","bqe7e","b3Y34","nXvLa","ABND7","Vwa8y","A0QrO","Aor26"]	 #World 6
 }
 
+from level import *
+
+# populate AllLevels with data
+with open("level_names.txt", "r") as f:
+	level_data = f.read().splitlines()
+
+all_levels = AllLevels()
+for i in level_data:
+	data = i.split(":")
+	all_levels.levels.append(Level(id=data[1],name=data[2],short_name=data[0]))
+
+# populate WeeklyLevels with data
+weekly_levels = WeeklyLevels()
+
+
+
 levels = []
 world = 0
 for c in range(2):
@@ -78,47 +94,29 @@ def refresh_data(leaderboard_id, override=False):
 	return cache_last_reloaded
 
 
-def get_top(leaderboard_id, unbroken=False):
-	refresh_data(leaderboard_id)
+def get_top(level, unbroken=False):
+	#refresh_data(leaderboard_id)
 	referer = "any"
 	if unbroken:
 		referer = "unbroken"
-	with open(f"data/{leaderboard_id}.json", "r") as file:
-		file = json.load(file)
-		leaderboard_data = file[referer]["top1000"]
-		formatted = []
-		for rank,score in enumerate(leaderboard_data):
-			#print(score)
-			this_level = {
-						"owner":score["owner"],
-						"display_name":score["owner"]["display_name"],
-						"rank":rank+1,
-						"value":score["value"],
-						"price":"${:,}".format(score["value"]),
-						"didBreak":score["didBreak"]
-						}
-			formatted.append(this_level)
-			if len(formatted) > 1:
-				if score["value"] == formatted[rank-1]["value"]: # Allign ranks for scores that tie
-					formatted[-1]["rank"] = formatted[rank-1]["rank"]
-		return formatted
-
-def find_user(leaderboard_id, user, unbroken=False):
-	# WARNING this function is depreciated - this functionality is in the leaderboard function
-	refresh_data(leaderboard_id)
-	referer = "any"
-	if unbroken:
-		referer = "unbroken"
-	with open(f"data/{leaderboard_id}.json", "r") as file:
-		file = json.load(file)
-		leaderboard_data = file[referer]["top1000"]
-		formatted = []
-		for rank,score in enumerate(leaderboard_data):
-			if score["owner"]["display_name"] == user:
-				formatted = [rank+1,"yes" if score["didBreak"] else "no",score["owner"]["display_name"],"${:,}".format(score["value"])]
-		if formatted == []:
-			formatted = NOT_TOP1000_TEXT
-		return formatted
+	file = level.leaderboard
+	leaderboard_data = file[referer]["top1000"]
+	formatted = []
+	for rank,score in enumerate(leaderboard_data):
+		#print(score)
+		this_level = {
+					"owner":score["owner"],
+					"display_name":score["owner"]["display_name"],
+					"rank":rank+1,
+					"value":score["value"],
+					"price":"${:,}".format(score["value"]),
+					"didBreak":score["didBreak"]
+					}
+		formatted.append(this_level)
+		if len(formatted) > 1:
+			if score["value"] == formatted[rank-1]["value"]: # Allign ranks for scores that tie
+				formatted[-1]["rank"] = formatted[rank-1]["rank"]
+	return formatted
 
 
 def create_profile(user, unbroken):
@@ -130,49 +128,49 @@ def create_profile(user, unbroken):
 	generated = []
 	owner = ""
 	user_decided = ""
-	for level in levels:
+	for level in all_levels.levels + weekly_levels.levels:
 		#print(level)
-		leaderboard_id = get_level_id(level)
-		refresh_data(leaderboard_id)
+		#leaderboard_id = get_level_id(level)
+		#refresh_data(leaderboard_id)
 		#print(leaderboard_id)
-		with open(f"data/{leaderboard_id}.json", "r") as file:
-			file = json.load(file)
-			leaderboard_data = file[referer]["top1000"]
-			found = False
-			tied = 0
-			for rank,score in enumerate(leaderboard_data):
-				r = rank
-				if rank > 0:
-					if score["value"] == prev["value"]:
-						tied += 1
-						r = rank-tied
-					else:
-						tied = 0
-				if (score["owner"]["display_name"].lower() == user.lower()) or (score["owner"]["id"] == user[1:]):
-					#print(score, user)
-					if not user_decided:
-						#print("Set user to", score["owner"])
-						user_decided = score["owner"]
-					if score["owner"] == user_decided:
-						owner = score["owner"]["display_name"]
-						found = True
-						this_level = {
-                    	            "owner": score["owner"]["display_name"],
-									"level":level,
-									"rank":r+1,
-									"price":"${:,}".format(score["value"]),
-									"didBreak":score["didBreak"],
-									"found":True
-									}
-				prev = score
-			if not found:
-				this_level = {
-							"owner":user,
-							"level":level,
-							"found":False
-							}
-			generated.append(this_level)
-			#print(this_level)
+		
+		file = level.leaderboard
+		leaderboard_data = file[referer]["top1000"]
+		found = False
+		tied = 0
+		for rank,score in enumerate(leaderboard_data):
+			r = rank
+			if rank > 0:
+				if score["value"] == prev["value"]:
+					tied += 1
+					r = rank-tied
+				else:
+					tied = 0
+			if (score["owner"]["display_name"].lower() == user.lower()) or (score["owner"]["id"] == user[1:]):
+				#print(score, user)
+				if not user_decided:
+					#print("Set user to", score["owner"])
+					user_decided = score["owner"]
+				if score["owner"] == user_decided:
+					owner = score["owner"]["display_name"]
+					found = True
+					this_level = {
+                	            "owner": score["owner"]["display_name"],
+								"level":level.short_name,
+								"rank":r+1,
+								"price":"${:,}".format(score["value"]),
+								"didBreak":score["didBreak"],
+								"found":True
+								}
+			prev = score
+		if not found:
+			this_level = {
+						"owner":user,
+						"level":level.short_name,
+						"found":False
+						}
+		generated.append(this_level)
+		#print(this_level)
 	#print(joined)
 	return generated, owner
 
@@ -201,7 +199,7 @@ def refresh_bucket_collated(override=False):
 	
 	buckets = {}
 	offset = 0
-	for c,lvl in enumerate(levels):
+	for c,lvl in enumerate(all_levels.levels):
 		level_id = bytes_read[offset:offset+5].decode("utf-8") 
 		#print(offset)
 		#print(bytes_read[offset-15:offset+15])
@@ -233,7 +231,7 @@ def refresh_bucket_collated(override=False):
 	return cache_last_reloaded
 
 
-def get_milestones(leaderboard_id, unbroken):
+def get_milestones(level, unbroken):
 	refresh_bucket_collated()
 	percents = [1, 2, 3, 4, 5, 8, 10, 15, 20, 25, 30, 40, 50]
 	referer = "any"
@@ -242,7 +240,7 @@ def get_milestones(leaderboard_id, unbroken):
 	milestones = []
 	with open(f"data/collated.json", "r") as file:
 		file = json.load(file)
-		for c,percentile in enumerate(file[leaderboard_id][referer]):
+		for c,percentile in enumerate(file[level.id][referer]):
 			if c+1 in percents:
 				current = percentile
 				if current != None:
@@ -291,8 +289,8 @@ def get_global_leaderboard(unbroken,level_type="all"):
 	start_score = 100*len(levels)
 	for level in levels:
 		#print(level)
-		leaderboard_id = get_level_id(level) # get leaderboard id level
-		current_board = get_top(leaderboard_id, unbroken) # get the leaderboard of level
+		#leaderboard_id = get_level_id(level) # get leaderboard id level
+		current_board = get_top(all_levels.getByShortName(level), unbroken) # get the leaderboard of level
 		for score in current_board:
 			if not leaderboard.get(score["owner"]["id"], None):
 				id_to_display_names[score["owner"]["id"]] = score["owner"]["display_name"]

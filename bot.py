@@ -52,11 +52,10 @@ async def leaderboard(ctx, level, **flags):
 	if flags["position"] < 0 or flags["position"] > 1000-NUMBER_TO_SHOW_TOP:
 		flags["position"] = 0
 	offset = flags["position"]
-	level_id = get_level_id(level)
-	
-	if level_id != INVALID_LEVEL_TEXT: # Top command
+	level_obj = all_levels.getByShortName(level)
+	if level_obj != None: # Top command
 
-		lb = get_top(level_id, flags["unbreaking"])
+		lb = get_top(level_obj, flags["unbreaking"])
 		if flags["user"] != None and flags["price"] == None and flags["position"] == 0: # Position Command
 			found_user = False
 			search_for_id = re.search(r"@\w+", flags["user"])
@@ -105,7 +104,7 @@ async def leaderboard(ctx, level, **flags):
 					break
 				if entry["rank"] != prev:
 					prev = entry["rank"]
-		pages = menus.MenuPages(source=GeneralLeaderboardViewer(lb,level,offset,flags["unbreaking"], refresh_data(level_id)), clear_reactions_after=True)
+		pages = menus.MenuPages(source=GeneralLeaderboardViewer(lb,f"{level}: {level_obj.name}",offset,flags["unbreaking"], level_obj.last_reloaded()), clear_reactions_after=True)
 		await pages.start(ctx)
 	else:
 		error["occurred"] = True
@@ -291,9 +290,9 @@ class ProfileViewer(menus.ListPageSource):
 @flags.command(name='milestones',help='Shows Milestones for a given level')
 async def milestones(ctx, level, **flags):
 	nobreaks = flags["unbreaking"]
-	level_id = get_level_id(level)
-	if level_id != INVALID_LEVEL_TEXT:
-		milestones = get_milestones(level_id, nobreaks)
+	level_obj = all_levels.getByShortName(level)
+	if level_obj != None:
+		milestones = get_milestones(level_obj, nobreaks)
 		embed = discord.Embed(
 			title=f"Milestones for {level} {'(Unbreaking)' if nobreaks else ''}",
 			colour=discord.Colour(0x3586ff),
@@ -473,37 +472,18 @@ class GlobalLeaderboardViewer(menus.ListPageSource):
 async def weeklyChallenge(ctx, **flags):
 	challenge_weeks = {}
 	week = flags["week"]
-	current_time = time.time()
-	try:
-		cache_last_reloaded = os.path.getmtime(f"data/weeklyChallenges.json")
-		
-	except FileNotFoundError:
-		cache_last_reloaded = 0
-		pass
-	if current_time - cache_last_reloaded > 28800: # 8 hours
-		r = requests.get(weekly_url)
-		with open(f"data/weeklyChallenges.json", "wb") as cache_file:
-			cache_file.write(r.content)
-		print("[CacheManager] Updated weeklyChallenges")
-	with open("data/weeklyChallenges.json") as file:
-		data = json.load(file)
-	
-
-	for item in data:
-		challenge_weeks[item["week"]] = item
-	
-	if week < 1 or week > len(challenge_weeks.values()):
-		week = list(challenge_weeks.keys())[-1]
+	if week < 1 or week > len(weekly_levels.levels):
+		week = weekly_levels.levels[-1].week
 	error = {"occurred":False,"detail":""}
 	#flags["position"] += -1
 	if flags["position"] < 0 or flags["position"] > 1000-NUMBER_TO_SHOW_TOP:
 		flags["position"] = 0
 	offset = flags["position"]
-	level_id = "WC." + challenge_weeks[week]["id"]
+	level_obj = weekly_levels.getByWeek(week)
 	
-	if level_id != INVALID_LEVEL_TEXT: # Top command
+	if level_obj != None: # Top command
 
-		lb = get_top(level_id, flags["unbreaking"])
+		lb = get_top(level_obj, flags["unbreaking"])
 		if flags["user"] != None and flags["price"] == None and flags["position"] == 0: # Position Command
 			found_user = False
 			search_for_id = re.search(r"@\w+", flags["user"])
@@ -551,7 +531,7 @@ async def weeklyChallenge(ctx, **flags):
 					break
 				if entry["rank"] != prev:
 					prev = entry["rank"]
-		pages = menus.MenuPages(source=GeneralLeaderboardViewer(lb,challenge_weeks[week]["title"],offset,flags["unbreaking"], refresh_data(level_id), True, challenge_weeks[week]["preview"]), clear_reactions_after=True)
+		pages = menus.MenuPages(source=GeneralLeaderboardViewer(lb,level_obj.name,offset,flags["unbreaking"], level_obj.last_reloaded(), True, level_obj.preview), clear_reactions_after=True)
 		await pages.start(ctx)
 	else:
 		error["occurred"] = True
