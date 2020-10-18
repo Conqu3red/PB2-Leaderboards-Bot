@@ -22,7 +22,7 @@ class CacheManager:
 					get_global_leaderboard(unb, global_type)
 					print(f"[CacheManager] Updated Global Leaderboard {global_type},{unb}")
 			
-			t = min([level.time_to_next_reload() for level in all_levels.levels + weekly_levels.levels])
+			t = max(0, min([level.time_to_next_reload() for level in all_levels.levels + weekly_levels.levels]))
 			
 			print(f"[CacheManager] Next Reload in {datetime.timedelta(seconds=int(t))}")
 			
