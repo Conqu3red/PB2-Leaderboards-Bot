@@ -554,10 +554,28 @@ bot.add_command(weeklyChallenge)
 @bot.command(name='id',help='Get the ID of a user')
 async def get_user_id(ctx,user):
 	users = id_from_user(user)
-	formatted = "No Users Found with that name" if users == [] else ""
+	embed = discord.Embed(
+		title=f"Users with the name: {user}",
+		colour=discord.Colour(0x3586ff)
+	)
+	#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
+	embed.set_author(
+		name="PB2 Leaderboards Bot", 
+		icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/758752385244987423.png"
+	)
 	for user in users:
-		formatted += f"`{user['id']} : {user['display_name']}`\n"
-	await ctx.send(formatted)
+		embed.add_field(
+			name=user["id"],
+			value=user["display_name"],
+			inline=True
+		)
+	if len(users) == 0:
+		embed.add_field(
+			name="Error",
+			value="No Users found with that name",
+			inline=False
+		)
+	await ctx.send(embed=embed)
 
 
 #bot.add_command(get_user_id)
