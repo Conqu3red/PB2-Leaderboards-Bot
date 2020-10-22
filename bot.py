@@ -23,7 +23,7 @@ from functions import *
 # Initiate CacheManager.py thread
 
 from CacheManager import *
-_thread.start_new_thread(CacheManager, ())
+#_thread.start_new_thread(CacheManager, ())
 
 
 #print(os.path.getmtime("data/collated.json"))
@@ -36,7 +36,7 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 bot = commands.Bot(command_prefix='-')
 
 user_log = {}
-command_list = ["leaderboard", "lb", "profile", "globaltop", "weekly", "milestones", "help","id"]
+command_list = ["leaderboard", "lb", "profile", "globaltop", "weekly", "milestones", "help", "id", "link"]
 
 @flags.add_flag("--unbreaking",action="store_true", default=False)
 @flags.add_flag("--position", type=int, default=0)
@@ -169,7 +169,15 @@ class GeneralLeaderboardViewer(menus.ListPageSource):
 
 @flags.add_flag("--unbreaking", action="store_true", default=False)
 @flags.command(name='profile',help='Shows Stats about the provided user.')
-async def profile(ctx, user, **flags):
+async def profile(ctx, user=None, **flags):
+	if user is None:
+		user = ""
+		with open("data/linked.json","rb") as f:
+			data = json.load(f)
+		try:
+			user = data[str(ctx.message.author.id)]
+		except:
+			pass
 	is_user_id = re.search(r"@\w+", user)
 	s = time.time()
 	nobreaks = flags["unbreaking"]
@@ -580,7 +588,28 @@ async def get_user_id(ctx,user):
 
 #bot.add_command(get_user_id)
 
-
+@bot.command(name='link',help='Link your discord account to a member on the leaderboards')
+async def link(ctx,user=None):
+	
+	try:
+		with open("data/linked.json","rb") as f:
+			data = json.load(f)
+	except:
+		data = {}
+	if user:
+		with open("data/linked.json","w") as f:
+			data[str(ctx.message.author.id)] = user
+			json.dump(data, f)
+	embed = discord.Embed(
+		title=f"Linked your Discord account to the user: {user}" if user else f"Your Discord account is linked to the user: {data.get(str(ctx.message.author.id), '**Account not linked!**')}",
+		colour=discord.Colour(0x3586ff)
+	)
+	#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
+	embed.set_author(
+		name="PB2 Leaderboards Bot", 
+		icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/758752385244987423.png"
+	)
+	await ctx.send(embed=embed)
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -666,6 +695,9 @@ async def on_ready():
 	print("[Bot] Connected to Discord!")
 	await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="-help"))
 
+if __name__ == "__main__":
+	_thread.start_new_thread(CacheManager, ())
 
 bot.run(TOKEN)
 loop = asyncio.get_event_loop()
+
