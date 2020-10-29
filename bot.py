@@ -302,7 +302,7 @@ async def milestones(ctx, level, **flags):
 	if level_obj != None:
 		milestones = get_milestones(level_obj, nobreaks)
 		embed = discord.Embed(
-			title=f"Milestones for {level} {'(Unbreaking)' if nobreaks else ''}",
+			title=f"Milestones for {level}: {level_obj.name} {'(Unbreaking)' if nobreaks else ''}",
 			colour=discord.Colour(0x3586ff),
 		)
 		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
@@ -350,7 +350,7 @@ async def globaltop(ctx, **flags):
 	level_type = flags["type"]
 	nobreaks = flags["unbreaking"]
 	level_type = level_type.lower()
-	if level_type not in ["all", "regular", "challenge"]:
+	if level_type not in ["all", "regular", "challenge", "weekly"]:
 		level_type = "all"
 	message = await ctx.send(
 		embed = discord.Embed(

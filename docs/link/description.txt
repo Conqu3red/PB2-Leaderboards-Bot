@@ -1,0 +1,18 @@
+Description: Links a username or id on the leaderboards to your discord account.
+Note: Once you have linked an account you can now use the profile command without a user parameter
+and it will get the profile for your linked user: `-profile`
+
+Examples:
+-link Conqu3red
+-link @Vz7JG
+-link
+
+Parameters:
+
+-<user> Optional |  The username or user id of the user you want to link your account to: Example: Bolt986
+	- Default Value: (nothing)
+	- Passing no value will display the account currently linked
+	- Passing a user ID:
+		@<user id>
+		Example:
+		@Vz7JG

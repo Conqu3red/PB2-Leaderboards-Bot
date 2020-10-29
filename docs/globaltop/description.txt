@@ -13,7 +13,7 @@ Parameters:
 
 -[--type] Optional | Indicates the types of levels accounted into the global leaderboard
 	- Default Value: all
-	- Valid Values: [all, regular, challenge]
+	- Valid Values: [all, regular, challenge, weekly]
 -[--user] Optional | Show Leaderboard at the point where a specified User appears: Example: Bolt986
 	- Default Value: (nothing)
 	- Passing a user ID:

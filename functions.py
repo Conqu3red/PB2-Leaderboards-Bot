@@ -225,22 +225,17 @@ def get_rank(leaderboard_id, price, unbroken):
 def get_global_leaderboard(unbroken,level_type="all"):
 	# level_type = all , regular , challenge
 	levels = []
-	if level_type == "all":
-		loop = 2
-	else:
-		loop = 1
-	for c in range(loop):
-		for world in range(5):
-			for level in range(16):
-				if level_type == "all":
-					levels.append(f"{world+1}-{level+1}{('c' if c == 1 else '')}")
-				elif level_type == "regular":
-					levels.append(f"{world+1}-{level+1}")
-				elif level_type == "challenge":
-					levels.append(f"{world+1}-{level+1}c")
-	if level_type != "challenge":
-		for level in range(10): # Only 10 levels in world 6
-			levels.append(f"6-{level+1}")
+	
+	levels = []
+	for level in all_levels.levels:
+		if level.short_name.endswith("c") and level_type in ["all", "challenge"]: # add challenge levels
+			levels.append(level)
+		elif not level.short_name.endswith("c") and level_type in ["all", "regular"]: # regular
+			levels.append(level)
+
+	for level in weekly_levels.levels:
+		if level_type == "weekly":
+			levels.append(level)
 	with open("rank_to_score.txt","r") as rank_to_score:
 		rank_to_score = rank_to_score.read().split("\n") # Load rank to points scaling into a list
 	leaderboard = {}
@@ -252,7 +247,7 @@ def get_global_leaderboard(unbroken,level_type="all"):
 	for level in levels:
 		#print(level)
 		#leaderboard_id = get_level_id(level) # get leaderboard id level
-		current_board = get_top(all_levels.getByShortName(level), unbroken) # get the leaderboard of level
+		current_board = get_top(level, unbroken) # get the leaderboard of level
 		for score in current_board:
 			if not leaderboard.get(score["owner"]["id"], None):
 				id_to_display_names[score["owner"]["id"]] = score["owner"]["display_name"]
@@ -276,7 +271,7 @@ def get_global_leaderboard(unbroken,level_type="all"):
 		json.dump([leaderboard_with_ranks, id_to_display_names], f)
 	return (leaderboard_with_ranks, id_to_display_names)
 
-def load_global(nobreaks, level_type):
+def load_global(nobreaks, level_type="all"):
 	with open(f"data/global_{level_type}_{nobreaks}.json", "r") as f:
 		return json.load(f)
 

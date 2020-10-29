@@ -18,7 +18,7 @@ class CacheManager:
 					to_reload.append(level)
 			with concurrent.futures.ThreadPoolExecutor() as executor:
 				results = [executor.submit(level.reload_leaderboard) for level in to_reload]
-			for global_type in ["all", "regular", "challenge"]:
+			for global_type in ["all", "regular", "challenge", "weekly"]:
 				for unb in [True, False]:
 					get_global_leaderboard(unb, global_type)
 					print(f"[CacheManager] Updated Global Leaderboard {global_type},{unb}")
