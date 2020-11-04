@@ -161,7 +161,7 @@ def refresh_bucket_collated(override=False):
 	
 	buckets = {}
 	offset = 0
-	for c,lvl in enumerate(all_levels.levels):
+	while offset < len(bytes_read):
 		level_id = bytes_read[offset:offset+5].decode("utf-8") 
 		#print(offset)
 		#print(bytes_read[offset-15:offset+15])
