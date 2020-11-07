@@ -109,7 +109,7 @@ class Level:
 		self.weekly_prepend = "WC."
 		self.base_id = id
 		self.name = name
-		if not isinstance(short_name, ShortName):
+		if not isinstance(short_name, ShortName) and not isweekly:
 			short_name = ShortName(short_name)
 		self.short_name = short_name
 		self.world = None
