@@ -216,22 +216,35 @@ def parse_price_input(price):
 		if char in "1234567890.":
 			sanitized_price += char
 	try:
-		return int(sanitized_price)
+		return float(sanitized_price)
 	except:
 		return 999999
 def get_rank(leaderboard_id, price, unbroken):
 	pass
 
-def get_global_leaderboard(unbroken,level_type="all"):
+def get_global_leaderboard(unbroken,level_type="all", worlds=None):
 	# level_type = all , regular , challenge
 	levels = []
-	
+	# parse inputted worlds
+	if worlds:
+		if worlds.count(",") == 0:
+			worlds = [worlds.strip()]
+		else:
+			worlds = [w.strip() for w in worlds.split(",")]
+	else:
+		worlds = []
+	worlds = list(dict.fromkeys(worlds))
 	levels = []
 	for level in all_levels.levels:
-		if level.short_name.endswith("c") and level_type in ["all", "challenge"]: # add challenge levels
-			levels.append(level)
-		elif not level.short_name.endswith("c") and level_type in ["all", "regular"]: # regular
-			levels.append(level)
+		if not worlds:
+			if level.short_name.is_challenge_level and level_type in ["all", "challenge"]: # add challenge levels
+				levels.append(level)
+			elif not level.short_name.is_challenge_level and level_type in ["all", "regular"]: # regular
+				levels.append(level)
+		elif worlds:
+			for world in worlds:
+				if world.replace("c", "") == str(level.short_name.world) and world.endswith("c") == level.short_name.is_challenge_level:
+					levels.append(level)
 
 	for level in weekly_levels.levels:
 		if level_type == "weekly":
@@ -267,11 +280,11 @@ def get_global_leaderboard(unbroken,level_type="all"):
 		prev = this
 		leaderboard_with_ranks[item[0]] = this
 
-	with open(f"data/global_{level_type}_{unbroken}.json", "w") as f:
-		json.dump([leaderboard_with_ranks, id_to_display_names], f)
-	return (leaderboard_with_ranks, id_to_display_names)
+	#with open(f"data/global_{level_type}_{unbroken}.json", "w") as f:
+	#	json.dump([leaderboard_with_ranks, id_to_display_names], f)
+	return leaderboard_with_ranks, id_to_display_names, worlds
 
-def load_global(nobreaks, level_type="all"):
+def _load_global(nobreaks, level_type="all"):
 	with open(f"data/global_{level_type}_{nobreaks}.json", "r") as f:
 		return json.load(f)
 

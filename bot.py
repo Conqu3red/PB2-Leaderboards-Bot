@@ -342,6 +342,7 @@ bot.add_command(milestones)
 @flags.add_flag("--position", type=int, default=0)
 @flags.add_flag("--user", type=str)
 @flags.add_flag("--score")
+@flags.add_flag("--worlds", type=str, default=None)
 
 @flags.command(name='globaltop',help='Shows the Global Leaderboard.')
 
@@ -358,7 +359,7 @@ async def globaltop(ctx, **flags):
 			colour=discord.Colour(0x3586ff)
 			)
 		)
-	global_leaderboard,id_to_display_names = load_global(nobreaks, level_type)
+	global_leaderboard, id_to_display_names, worlds = get_global_leaderboard(nobreaks, level_type, flags["worlds"])
 	
 		
 	if flags["user"] != None and flags["score"] == None and flags["position"] == 0: # Position Command
@@ -430,18 +431,19 @@ async def globaltop(ctx, **flags):
 		)
 		#print(c,id_to_display_names[itm[0]], itm[1])
 	await message.delete()
-	pages = menus.MenuPages(source=GlobalLeaderboardViewer(lb, offset, level_type, nobreaks), clear_reactions_after=True)
+	pages = menus.MenuPages(source=GlobalLeaderboardViewer(lb, offset, level_type, nobreaks, worlds), clear_reactions_after=True)
 	await pages.start(ctx)
 
 
 bot.add_command(globaltop)
 class GlobalLeaderboardViewer(menus.ListPageSource):
-	def __init__(self, data, offset, level_type, unbreaking):
+	def __init__(self, data, offset, level_type, unbreaking, worlds):
 		self.data = data
 		self.offs = offset
 		self.first = True
 		self.level_type = level_type
 		self.unbreaking = unbreaking
+		self.worlds = worlds
 		super().__init__(data, per_page=12)
 
 	async def format_page(self, menu, entries):
@@ -451,7 +453,7 @@ class GlobalLeaderboardViewer(menus.ListPageSource):
 			entries = self.data[(self.offs - self.offs % NUMBER_TO_SHOW_TOP):(self.offs - self.offs % NUMBER_TO_SHOW_TOP)+NUMBER_TO_SHOW_TOP]
 		offset = (menu.current_page * self.per_page) + self.offs
 		embed = discord.Embed(
-			title=f"Global Leaderboard ({self.level_type} levels) {'(Unbreaking)' if self.unbreaking else ''}",
+			title=f"""Global Leaderboard ({self.level_type} levels){' (Unbreaking)' if self.unbreaking else ''}{'(World {0})'.format(",".join(self.worlds)) if self.worlds else ''}""",
 			colour=discord.Colour(0x3586ff)
 		)
 		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")

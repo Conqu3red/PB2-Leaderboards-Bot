@@ -3,6 +3,31 @@ weekly_url = "https://dfp529wcvahka.cloudfront.net/manifests/weeklyChallenges.js
 download_url = "http://dfp529wcvahka.cloudfront.net/manifests/leaderboards/scores/{0}.json"
 download_challenges_url = "https://dfp529wcvahka.cloudfront.net/manifests/leaderboards/challenges/scores/{0}.json"
 
+class ShortName:
+	def __init__(self, short_name=""):
+		"""
+		short_name: str
+		of the format:
+			"1-1c"
+			world-level(challenge?)
+		"""
+		try:
+			if short_name.count("-") == 1:
+				self.world = int(short_name.split("-")[0])
+				self.level = int(short_name.split("-")[1].replace("c", ""))
+			else:
+				raise ValueError
+			self.is_challenge_level = short_name.endswith("c")
+			self.valid = True
+		except ValueError:
+			self.world = 0
+			self.level = 0
+			self.is_challenge_level = False
+			self.valid = False
+	def __str__(self):
+		return f"{self.world}-{self.level}{'c' if self.is_challenge_level else ''}"
+
+
 class AllLevels:
 	def __init__(self):
 		self.levels = []
@@ -16,18 +41,21 @@ class AllLevels:
 			return None
 	
 	def getByShortName(self,name):
-		world, level = name.split("-")
-		challenge = False
-		if level.endswith("c"): level = level[:-1]; challenge = True
-
-		world = int(world)
-		level = int(level)
+		if not isinstance(name, ShortName):
+			name = ShortName(name)
+		if not name.valid:
+			return
+		world, level = name.world, name.level
+		challenge = name.is_challenge_level
+		try:
+			world = int(world)
+			level = int(level)
+		except ValueError:
+			return
 
 		for lvl in self.levels:
-			i_world, i_level = lvl.short_name.split("-")
-			i_challenge = False
-			if i_level.endswith("c"): i_level = i_level[:-1]; i_challenge = True
-
+			i_world, i_level = lvl.short_name.world, lvl.short_name.level
+			i_challenge = lvl.short_name.is_challenge_level
 			if int(i_world) == world and int(i_level) == level and challenge == i_challenge:
 				return lvl
 
@@ -76,12 +104,15 @@ class WeeklyLevels:
 
 
 class Level:
-	def __init__(self,id=None, name="", short_name="0-0", isweekly=False,
+	def __init__(self,id=None, name="", short_name=ShortName(), isweekly=False,
 	json_folder="data/", extension=".json", reload_every=28000, week=0, preview=""):
 		self.weekly_prepend = "WC."
 		self.base_id = id
 		self.name = name
+		if not isinstance(short_name, ShortName):
+			short_name = ShortName(short_name)
 		self.short_name = short_name
+		self.world = None
 		self.isweekly = isweekly
 		self.json_folder = json_folder
 		self.extension = extension
