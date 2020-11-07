@@ -194,7 +194,7 @@ async def profile(ctx, user=None, **flags):
 	global_positions = {}
 	user_id = ""
 	for level_type in ["all","regular","challenge"]:
-		global_leaderboard,id_to_display_names = load_global(nobreaks, level_type)
+		global_leaderboard,id_to_display_names = get_global_leaderboard(nobreaks, level_type)
 		if user != None:
 				for pos,itm in enumerate(list(global_leaderboard.items())):
 					if not is_user_id:
