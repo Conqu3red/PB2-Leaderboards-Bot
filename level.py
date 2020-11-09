@@ -80,7 +80,7 @@ class WeeklyLevels:
 		except FileNotFoundError:
 			cache_last_reloaded = 0
 			pass
-		if current_time - cache_last_reloaded > 28800: # 8 hours
+		if current_time - cache_last_reloaded > 3600: # 8 hours - changed to 1 hour - raz
 			r = requests.get(weekly_url)
 			with open(f"data/weeklyChallenges.json", "wb") as cache_file:
 				cache_file.write(r.content)
