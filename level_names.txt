@@ -48,7 +48,7 @@
 3-16:AgXrn:Monster Truck Rally
 4-01:nk2rA:Edgy
 4-02:nKv3A:Collision Warning
-4-03:bje7V:Sloped Drawbrigde
+4-03:bje7V:Sloped Drawbridge
 4-04:b2qZV:Trap Door
 4-05:VPllV:Triple Decker Drawbridge
 4-06:nyl7A:Safety Gap
@@ -76,7 +76,7 @@
 5-12:A0ZgM:Gettin' Loopy
 5-13:AEOYo:Crash Course
 5-14:VwMk5:Bus Routes
-5-15:bqYEM:Accelaration
+5-15:bqYEM:Acceleration
 5-16:VY3MR:Double Duty
 1-01c:AW7zA:Ten Meter Simple Bridge
 1-02c:bq7Mn:A New Slope
@@ -128,7 +128,7 @@
 3-16c:nRM7A:Monster Truck Rally
 4-01c:b7ljA:Edgy
 4-02c:bOpaA:Collision Warning
-4-03c:Aa5OA:Sloped Drawbrigde
+4-03c:Aa5OA:Sloped Drawbridge
 4-04c:VwMpA:Trap Door
 4-05c:A0ZaV:Triple Decker Drawbridge
 4-06c:bqYob:Safety Gap
@@ -156,7 +156,7 @@
 5-12c:bNdLo:Gettin' Loopy
 5-13c:b2Z5w:Crash Course
 5-14c:nQm4e:Bus Routes
-5-15c:V6BRD:Accelaration
+5-15c:V6BRD:Acceleration
 5-16c:VPeKo:Double Duty
 6-01:bOeMR:Earth Quake
 6-02:A5XOx:Canyon Carriage
