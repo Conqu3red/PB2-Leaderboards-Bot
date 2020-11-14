@@ -12,6 +12,7 @@ from discord.ext import menus
 from discord.ext import flags
 from dotenv import load_dotenv
 import math
+from copy import deepcopy
 BUCKET_URL = "https://dfp529wcvahka.cloudfront.net/manifests/leaderboards/buckets/collated.bin"
 INVALID_LEVEL_TEXT = "Invalid Level."
 NOT_TOP1000_TEXT = "This User is not in the top 1000 for the specified level"
@@ -255,16 +256,43 @@ class ProfileViewer(menus.ListPageSource):
 						value=f"```{global_pos_formatted}```",
 						inline=False
 				)
-			number_top = {"1":0, "10":0, "100":0, "1000":0}
-			for element in self.data:
+			categories = dict.fromkeys(["overall", "regular", "challenge", "weekly"], 0)
+			number_top = {
+				"1":   deepcopy(categories), 
+				"10":  deepcopy(categories), 
+				"100": deepcopy(categories), 
+				"1000":deepcopy(categories),
+			}
+
+			# all levels remain in order in self.data so we can find the level it refers to from
+			# the index applied to the list all_levels.levels + weekly_levels.levels
+			every_level = all_levels.levels + weekly_levels.levels
+			
+			for count, element in enumerate(self.data):
+				level = every_level[count]
 				if element["found"]:
-					for category in number_top.keys():
-						if element["rank"] <= int(category):
-							number_top[category] += 1
-			for itm in number_top.items():
+					for rank_pool in number_top.keys():
+						if element["rank"] <= int(rank_pool):
+							if level.isweekly:
+								number_top[rank_pool]["weekly"] += 1
+								#print(f"weekly:  {level.short_name} : added to top {rank_pool}s")
+							elif level.short_name.is_challenge_level:
+								number_top[rank_pool]["challenge"] += 1
+								#print(f"challenge:  {level.short_name} : added to top {rank_pool}s")
+							else:
+								number_top[rank_pool]["regular"] += 1
+								#print(f"regular:  {level.short_name} : added to top {rank_pool}s")
+			
+			for r_id, rank_pool in number_top.items():
+				number_top[r_id]["overall"] = rank_pool["regular"] + rank_pool["challenge"]
+			for pool_name, values in number_top.items():
+				end_val = ""
+				for level_type, number in values.items():
+					end_val += f"{level_type.title()}: `{number}`\n"
+				
 				embed.add_field(
-					name=f"Top {itm[0]}s",
-					value=f"`{itm[1]}`",
+					name=f"Top {pool_name}s",
+					value=end_val,
 					inline=True
 				)
 		else:
