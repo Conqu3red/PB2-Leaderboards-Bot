@@ -160,9 +160,9 @@ class GeneralLeaderboardViewer(menus.ListPageSource):
 		)
 		for entry in entries:
 			embed.add_field(
-				name=f"{entry['rank']}: {entry['display_name']}",
-				value=f"{entry['price']} {'(Breaks)' if entry['didBreak'] else ''}", # no breaking, so we don't say it broke
-				inline=True
+				name=f"`{entry['rank']}: {entry['display_name']}`",
+				value=f"{entry['price']}{' (Breaks)' if entry['didBreak'] else ''}", # no breaking, so we don't say it broke
+				inline=True,
 			)
 		#return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
 		return embed
@@ -239,7 +239,7 @@ class ProfileViewer(menus.ListPageSource):
 		
 		if menu.current_page == 0:
 			embed = discord.Embed(
-				title=f"Profile for: {self.owner}{' (Unbreaking)' if self.unbreaking else ''}{' (Stats)' if menu.current_page == 0 else ''}, ID: `{self.user_id}`",
+				title=f"Profile for: `{self.owner}`{' (Unbreaking)' if self.unbreaking else ''}{' (Stats)' if menu.current_page == 0 else ''}, ID: `{self.user_id}`",
 				description="Showing Stats page. Press :arrow_forward: in reactions to see scores for each level.",
 				colour=discord.Colour(0x3586ff)
 			)
@@ -480,8 +480,17 @@ class GlobalLeaderboardViewer(menus.ListPageSource):
 			menu.current_page = math.floor(self.offs/NUMBER_TO_SHOW_TOP)
 			entries = self.data[(self.offs - self.offs % NUMBER_TO_SHOW_TOP):(self.offs - self.offs % NUMBER_TO_SHOW_TOP)+NUMBER_TO_SHOW_TOP]
 		offset = (menu.current_page * self.per_page) + self.offs
+		
+		title = "Global Leaderboard"
+		if self.worlds:
+			title += ' (World{s} `{names}`)'.format(names=",".join(self.worlds), s="s" if len(self.worlds) > 1 else "")
+		else:
+			title += f" ({self.level_type} levels)"
+		if self.unbreaking:
+			title += ' (Unbreaking)'
+		
 		embed = discord.Embed(
-			title=f"""Global Leaderboard ({self.level_type} levels){' (Unbreaking)' if self.unbreaking else ''}{'(World {0})'.format(",".join(self.worlds)) if self.worlds else ''}""",
+			title=title,
 			colour=discord.Colour(0x3586ff)
 		)
 		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")

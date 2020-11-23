@@ -235,6 +235,7 @@ def get_global_leaderboard(unbroken,level_type="all", worlds=None):
 		worlds = []
 	worlds = list(dict.fromkeys(worlds))
 	levels = []
+	valid_worlds = set()
 	for level in all_levels.levels:
 		if not worlds:
 			if level.short_name.is_challenge_level and level_type in ["all", "challenge"]: # add challenge levels
@@ -245,6 +246,8 @@ def get_global_leaderboard(unbroken,level_type="all", worlds=None):
 			for world in worlds:
 				if world.replace("c", "") == str(level.short_name.world) and world.endswith("c") == level.short_name.is_challenge_level:
 					levels.append(level)
+					valid_worlds.add(world)
+	worlds = list(valid_worlds)
 
 	for level in weekly_levels.levels:
 		if level_type == "weekly":
