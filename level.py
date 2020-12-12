@@ -12,6 +12,7 @@ class ShortName:
 			world-level(challenge?)
 		"""
 		try:
+			short_name = short_name.lower()
 			if short_name.count("-") == 1:
 				self.world = int(short_name.split("-")[0])
 				self.level = int(short_name.split("-")[1].replace("c", ""))
@@ -123,9 +124,9 @@ class Level:
 	
 	def reload_leaderboard(self):
 		leaderboard_id = self.id
-		if len(leaderboard_id) == 5: # Normal
+		if not self.isweekly: # Normal level
 			url = download_url.format(leaderboard_id)
-		elif len(leaderboard_id) == 8:
+		else: # Weekly level
 			url = download_challenges_url.format(leaderboard_id[3:])
 		r = requests.get(url)
 		with open(f"data/{leaderboard_id}.json", "wb") as cache_file:

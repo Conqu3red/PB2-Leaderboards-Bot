@@ -483,7 +483,7 @@ class GlobalLeaderboardViewer(menus.ListPageSource):
 		
 		title = "Global Leaderboard"
 		if self.worlds:
-			title += ' (World{s} `{names}`)'.format(names=",".join(self.worlds), s="s" if len(self.worlds) > 1 else "")
+			title += ' (World{s} `{worlds}`)'.format(worlds=",".join(self.worlds), s="s" if len(self.worlds) > 1 else "")
 		else:
 			title += f" ({self.level_type} levels)"
 		if self.unbreaking:
