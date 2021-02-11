@@ -48,12 +48,13 @@ for level in range(10): # Only 10 levels in world 6
 
 def time_since_reload(t):
 	seconds = time.time() - t
-	seconds = seconds % (24 * 3600) 
-	hour = seconds // 3600
-	seconds %= 3600
-	minutes = seconds // 60
-	seconds %= 60 
-	return " • %dh %02dm ago" % (hour, minutes)
+	#seconds = seconds % (24 * 3600) 
+	#hour = seconds // 3600
+	#seconds %= 3600
+	#minutes = seconds // 60
+	#seconds %= 60 
+	#return "%dh %02dm ago" % (hour, minutes)
+	return nice_time_format(seconds)
 
 
 def get_top(level, unbroken=False):
@@ -64,20 +65,21 @@ def get_top(level, unbroken=False):
 	file = level.leaderboard
 	leaderboard_data = file[referer]["top1000"]
 	formatted = []
+	now = time.time()
 	for rank,score in enumerate(leaderboard_data):
 		#print(score)
 		this_level = {
 					"owner":score["owner"],
 					"display_name":score["owner"]["display_name"],
-					"rank":rank+1,
+					"rank":score["rank"],
 					"value":score["value"],
 					"price":"${:,}".format(score["value"]),
-					"didBreak":score["didBreak"]
+					"didBreak":score["didBreak"],
+					"time":score.get("time", now),
+					"level_name":level.name,
+					"level_short_name":str(level.short_name)
 					}
 		formatted.append(this_level)
-		if len(formatted) > 1:
-			if score["value"] == formatted[rank-1]["value"]: # Allign ranks for scores that tie
-				formatted[-1]["rank"] = formatted[rank-1]["rank"]
 	return formatted
 
 
@@ -117,7 +119,7 @@ def create_profile(user, unbroken):
 					owner = score["owner"]["display_name"]
 					found = True
 					this_level = {
-                	            "owner": score["owner"]["display_name"],
+								"owner": score["owner"]["display_name"],
 								"level":level.short_name,
 								"rank":r+1,
 								"price":"${:,}".format(score["value"]),
@@ -290,6 +292,45 @@ def get_global_leaderboard(unbroken,level_type="all", worlds=None):
 def _load_global(nobreaks, level_type="all"):
 	with open(f"data/global_{level_type}_{nobreaks}.json", "r") as f:
 		return json.load(f)
+
+def get_oldest_scores_leaderboard():
+	every_score = []
+	# loop to put every leadeboard into one array
+	for level in all_levels.levels:
+		temp_this_level_added = []
+		for current_board in [get_top(level, True), get_top(level, False)]:
+			for score in current_board:
+				if score["rank"] == 1:
+					already_exists = False
+					for s in temp_this_level_added:
+						if s["value"] == score["value"] and s["didBreak"] == score["didBreak"] and s["owner"] == score["owner"]:
+							already_exists = True
+					if not already_exists:
+						every_score.append(score)
+						temp_this_level_added.append(score)
+				else:
+					break
+	leaderboard_sorted = [score for score in sorted(every_score, key=lambda item: item["time"])]
+	leaderboard_ranked = []
+	for c, score in enumerate(leaderboard_sorted):
+		score["time_rank"] = c+1
+		leaderboard_ranked.append(score)
+		if len(leaderboard_ranked) > 1:
+			if score["time"] == leaderboard_ranked[-2]["time"]:
+				leaderboard_ranked[-1]["time_rank"] = leaderboard_ranked[-2]["time_rank"]
+	return leaderboard_ranked
+
+def nice_time_format(seconds):
+	d = int(seconds // (60*60*24))
+	h = int(seconds // (60*60) % 24)
+	m = int(seconds // 60 % 60)
+	s = int(seconds % 60)
+	ret = f""
+	if d != 0: ret += f"{d}d "
+	if h != 0 and d == 0: ret += f"{h}h "
+	if m != 0 and d == 0 and h == 0: ret += f"{m}m "
+	if d == 0 and h == 0 and m == 0: ret += f"{s}s "
+	return ret + "ago"
 
 def id_from_user(user):
 	users = []

@@ -15,3 +15,5 @@ Parameters:
 		Example:
 		@Vz7JG
 -[--unbreaking] Optional |  to indicate you only want unbreaking scores pass this flag as --unbreaking
+
+-[--mobile] Optional | When you specify this flag the bot will return a more mobile friendly layout to the leaderboard.

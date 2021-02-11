@@ -12,12 +12,13 @@ from discord.ext import menus
 from discord.ext import flags
 from dotenv import load_dotenv
 import math
+import random
 from copy import deepcopy
 BUCKET_URL = "https://dfp529wcvahka.cloudfront.net/manifests/leaderboards/buckets/collated.bin"
 INVALID_LEVEL_TEXT = "Invalid Level."
 NOT_TOP1000_TEXT = "This User is not in the top 1000 for the specified level"
 NUMBER_TO_SHOW_TOP = 12
-
+space = '\u2009'
 # get important functions
 from functions import *
 
@@ -37,12 +38,13 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 bot = commands.Bot(command_prefix='-')
 
 user_log = {}
-command_list = ["leaderboard", "lb", "profile", "globaltop", "weekly", "milestones", "help", "id", "link"]
+command_list = ["leaderboard", "lb", "profile", "globaltop", "weekly", "milestones", "help", "id", "link", "oldest"]
 
 @flags.add_flag("--unbreaking",action="store_true", default=False)
 @flags.add_flag("--position", type=int, default=0)
 @flags.add_flag("--user", type=str)
 @flags.add_flag("--price")
+@flags.add_flag("--mobile",action="store_true", default=False)
 
 @flags.command(name='leaderboard', pass_context=True,aliases=["lb"],help='Shows the leaderboard for a level')
 
@@ -105,7 +107,7 @@ async def leaderboard(ctx, level, **flags):
 					break
 				if entry["rank"] != prev:
 					prev = entry["rank"]
-		pages = menus.MenuPages(source=GeneralLeaderboardViewer(lb,f"{level}: {level_obj.name}",offset,flags["unbreaking"], level_obj.last_reloaded()), clear_reactions_after=True)
+		pages = menus.MenuPages(source=GeneralLeaderboardViewer(lb,f"{level}: {level_obj.name}",offset,flags["unbreaking"], level_obj.last_reloaded(), mobile_view=flags["mobile"]), clear_reactions_after=True)
 		await pages.start(ctx)
 	else:
 		error["occurred"] = True
@@ -124,7 +126,7 @@ bot.add_command(leaderboard)
 
 
 class GeneralLeaderboardViewer(menus.ListPageSource):
-	def __init__(self, data, level, offset, unbreaking, reload_time, is_weekly_challenge=False, thumbnail_url=None):
+	def __init__(self, data, level, offset, unbreaking, reload_time, mobile_view=False, is_weekly_challenge=False, thumbnail_url=None):
 		super().__init__(data, per_page=NUMBER_TO_SHOW_TOP)
 		self.level = level
 		self.offs = offset
@@ -134,6 +136,7 @@ class GeneralLeaderboardViewer(menus.ListPageSource):
 		self.first = True
 		self.is_weekly_challenge = is_weekly_challenge
 		self.thumbnail_url = thumbnail_url
+		self.mobile_view = mobile_view
 		# DOES NOT APPLY OFFSET!
 	async def format_page(self, menu, entries): # Entries is already a specific place
 		if self.first:
@@ -151,19 +154,32 @@ class GeneralLeaderboardViewer(menus.ListPageSource):
 				url=self.thumbnail_url
 			)
 		embed.set_footer(
-			text=f"cached leaderboards for {self.level} last updated{time_since_reload(self.reload_time)}",
+			text=f"Page {menu.current_page+1}/{math.ceil(len(self.data)/NUMBER_TO_SHOW_TOP)} • {time_since_reload(self.reload_time)}{' • hey, this does not normally appear, I wonder what day it is?' if datetime.datetime.now().month == 3 and datetime.datetime.now().day == 1 and random.randint(0,5) == 2 else ''}"
 		)
 		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
 		embed.set_author(
 			name="PB2 Leaderboards Bot", 
 			icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/758752385244987423.png"
 		)
-		for entry in entries:
-			embed.add_field(
-				name=f"`{entry['rank']}: {entry['display_name']}`",
-				value=f"{entry['price']}{' (Breaks)' if entry['didBreak'] else ''}", # no breaking, so we don't say it broke
-				inline=True,
-			)
+		description = f"`✱ = Has Breaks`\n"
+		if self.mobile_view:
+			for entry in entries:
+				embed.add_field(
+					name=f"`{'🥇🥈🥉'[entry['rank']-1] if entry['rank'] <= 3 else entry['rank']}: {entry['display_name']}`",
+					value=f"{entry['price']}{' ✱' if entry['didBreak'] else ''}", # no breaking, so we don't say it broke
+					inline=True,
+				)
+		else:
+			longest = 0
+			for entry in entries:
+				identity = f"{'🥇🥈🥉'[entry['rank']-1] if entry['rank'] <= 3 else entry['rank']}: {entry['display_name']}"
+				if (len(identity) > longest): longest = len(identity)
+
+			for entry in entries:
+				identity = f"{'🥇🥈🥉'[entry['rank']-1] if entry['rank'] <= 3 else entry['rank']}: {entry['display_name']}"
+				description += f"`{identity}{' '*(longest-len(identity))} {entry['price']}{' ✱' if entry['didBreak'] else ''}`\n"
+			
+		embed.description = description
 		#return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
 		return embed
 
@@ -173,11 +189,14 @@ class GeneralLeaderboardViewer(menus.ListPageSource):
 async def profile(ctx, user=None, **flags):
 	if user is None:
 		user = ""
-		with open("data/linked.json","rb") as f:
-			data = json.load(f)
-		try:
-			user = data[str(ctx.message.author.id)]
-		except:
+		if os.path.exists("data/linked.json"):
+			with open("data/linked.json","rb") as f:
+				data = json.load(f)
+			try:
+				user = data[str(ctx.message.author.id)]
+			except:
+				pass
+		else:
 			pass
 	is_user_id = re.search(r"@\w+", user)
 	s = time.time()
@@ -226,12 +245,13 @@ async def profile(ctx, user=None, **flags):
 bot.add_command(profile)
 
 class ProfileViewer(menus.ListPageSource):
-	def __init__(self, data, unbreaking, global_positions, owner, user_id):
+	def __init__(self, data, unbreaking, global_positions, owner, user_id, mobile_view=False):
 		self.data = data[8:]
 		self.unbreaking = unbreaking
 		self.global_positions = global_positions
 		self.owner = owner
 		self.user_id = user_id
+		self.mobile_view = mobile_view
 		super().__init__(data, per_page=8)
 
 	async def format_page(self, menu, entries):
@@ -249,7 +269,7 @@ class ProfileViewer(menus.ListPageSource):
 			)
 			global_pos_formatted = f""
 			for global_score in self.global_positions.items():
-				global_pos_formatted += f"{global_score[0]}: #{global_score[1]['rank']+1} ({global_score[1]['score']})\n"
+				global_pos_formatted += f"{global_score[0]}: {'🥇🥈🥉'[global_score[1]['rank']] if global_score[1]['rank']+1 <= 3 else '#'+str(global_score[1]['rank']+1)} ({global_score[1]['score']})\n"
 			if len(global_pos_formatted) != 0:
 				embed.add_field(
 						name=f"Global Leaderboard Positions",
@@ -306,23 +326,48 @@ class ProfileViewer(menus.ListPageSource):
 				name="PB2 Leaderboards Bot", 
 				icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/758752385244987423.png"
 			)
-			for c, result in enumerate(entries, start=offset):
-				if result["found"]:
-					embed.add_field(
-						name=f"{result['level']}: #{result['rank']}",
-						value=f"{result['price']} {'(Breaks)' if result['didBreak'] else ''}", # no breaking, so we don't say it broke
-						inline=True
-					)
-				elif not result["found"]:
-					embed.add_field(
-						name=f"{result['level']}:",
-						value=f"❌",
-						inline=True
-					)
+			embed.set_footer(text=f"Page {menu.current_page}/{math.ceil(len(self.data)/8)}")
+			if self.mobile_view:
+				for c, result in enumerate(entries, start=offset):
+					if result["found"]:
+						embed.add_field(
+							name=f"{result['level']}: #{result['rank']}",
+							value=f"{result['price']} {'✱' if result['didBreak'] else ''}", # no breaking, so we don't say it broke
+							inline=True
+						)
+					elif not result["found"]:
+						embed.add_field(
+							name=f"{result['level']}:",
+							value=f"❌",
+							inline=True
+						)
+			else:
+				description = f"`✱ = Has Breaks`\n"
+				longest = 0
+				for c, result in enumerate(entries, start=offset):
+					if result["found"]:
+						identity = f"{result['level']}: #{result['rank']}"
+					else:
+						identity = f"{result['level']}:"
+					
+					if (len(identity) > longest): longest = len(identity)
+
+				for c, result in enumerate(entries, start=offset):
+					if result["found"]:
+						identity = f"{result['level']}: #{result['rank']}"
+						description += f"`{identity}{' '*(longest-len(identity))} {result['price']}{' ✱' if result['didBreak'] else ''}`\n"
+					else:
+						identity = f"{result['level']}:"
+						description += f"`{identity}{' '*(longest-len(identity))} ❌`\n"
+					
+					
+				embed.description = description
 		return embed
 
 
 @flags.add_flag("--unbreaking", action="store_true", default=False)
+@flags.add_flag("--mobile", action="store_true", default=False)
+
 @flags.command(name='milestones',help='Shows Milestones for a given level')
 async def milestones(ctx, level, **flags):
 	nobreaks = flags["unbreaking"]
@@ -339,18 +384,35 @@ async def milestones(ctx, level, **flags):
 			icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/758752385244987423.png"
 		)
 		embed.set_footer(
-			text=f"Milestone cache last updated {time_since_reload(refresh_bucket_collated())}",
+			text=f"Milestone cache last updated • {time_since_reload(refresh_bucket_collated())}",
 		)
+		if flags["mobile"]:
+			for milestone in milestones:
+				if milestone != None:
+					startValue = "${:,}".format(milestone["startValue"])
+					endValue = "${:,}".format(milestone["endValue"])
+					embed.add_field(
+						name=f"Top {milestone['percent']}%",
+						value=f"#{milestone['endRank']} ({endValue})",
+						inline=True
+					)
+		else:
+			description = f""
+			longest = 0
+			for milestone in milestones:
+				if milestone != None:
+					startValue = "${:,}".format(milestone["startValue"])
+					endValue = "${:,}".format(milestone["endValue"])
+					identity = f"Top {milestone['percent']}%"
+					if (len(identity) > longest): longest = len(identity)
 
-		for milestone in milestones:
-			if milestone != None:
-				startValue = "${:,}".format(milestone["startValue"])
-				endValue = "${:,}".format(milestone["endValue"])
-				embed.add_field(
-					name=f"Top {milestone['percent']}%",
-					value=f"Above #{milestone['endRank']} ({endValue})",
-					inline=True
-				)
+			for milestone in milestones:
+				if milestone != None:
+					startValue = "${:,}".format(milestone["startValue"])
+					endValue = "${:,}".format(milestone["endValue"])
+					identity = f"Top {milestone['percent']}%"
+					description += f"`{identity}{' '*(longest-len(identity))} #{milestone['endRank']} ({endValue})`\n"
+			embed.description = description
 		await ctx.send(
 			embed=embed
 		)
@@ -371,6 +433,7 @@ bot.add_command(milestones)
 @flags.add_flag("--user", type=str)
 @flags.add_flag("--score")
 @flags.add_flag("--worlds", type=str, default=None)
+@flags.add_flag("--mobile", action="store_true", default=False)
 
 @flags.command(name='globaltop',help='Shows the Global Leaderboard.')
 
@@ -452,26 +515,27 @@ async def globaltop(ctx, **flags):
 	lb = []
 	for c,itm in enumerate(list(global_leaderboard.items())):
 		lb.append({
-				"name":f"{itm[1]['rank']+1}: {id_to_display_names[itm[0]]}",
+				"name":f"{'🥇🥈🥉'[itm[1]['rank']] if itm[1]['rank']+1 <= 3 else itm[1]['rank']+1}: {id_to_display_names[itm[0]]}",
 				"value":f"Score: {itm[1]['score']}",
 				"inline":True
 		}
 		)
 		#print(c,id_to_display_names[itm[0]], itm[1])
 	await message.delete()
-	pages = menus.MenuPages(source=GlobalLeaderboardViewer(lb, offset, level_type, nobreaks, worlds), clear_reactions_after=True)
+	pages = menus.MenuPages(source=GlobalLeaderboardViewer(lb, offset, level_type, nobreaks, worlds, mobile_view=flags["mobile"]), clear_reactions_after=True)
 	await pages.start(ctx)
 
 
 bot.add_command(globaltop)
 class GlobalLeaderboardViewer(menus.ListPageSource):
-	def __init__(self, data, offset, level_type, unbreaking, worlds):
+	def __init__(self, data, offset, level_type, unbreaking, worlds, mobile_view=False):
 		self.data = data
 		self.offs = offset
 		self.first = True
 		self.level_type = level_type
 		self.unbreaking = unbreaking
 		self.worlds = worlds
+		self.mobile_view = mobile_view
 		super().__init__(data, per_page=12)
 
 	async def format_page(self, menu, entries):
@@ -498,12 +562,26 @@ class GlobalLeaderboardViewer(menus.ListPageSource):
 			name="PB2 Leaderboards Bot", 
 			icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/758752385244987423.png"
 		)
-		for c, result in enumerate(entries, start=offset):
-			embed.add_field(
-				name=result["name"],
-				value=result["value"],
-				inline=result["inline"]
-			)
+		embed.set_footer(text=f"Page {menu.current_page+1}/{math.ceil(len(self.data)/NUMBER_TO_SHOW_TOP)}")
+		if self.mobile_view:
+			for c, result in enumerate(entries, start=offset):
+				embed.add_field(
+					name=f"`{result['name']}`",
+					value=result["value"],
+					inline=result["inline"]
+				)
+		else:
+			longest = 0
+			description = f""
+			for c, result in enumerate(entries, start=offset):
+				identity = f"{result['name']}"
+				if (len(identity) > longest): longest = len(identity)
+
+			for c, result in enumerate(entries, start=offset):
+				identity = f"{result['name']}"
+				description += f"`{identity}{' '*(longest-len(identity))} {result['value']}`\n"
+			embed.description = description
+		
 		#return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
 		return embed
 
@@ -513,6 +591,7 @@ class GlobalLeaderboardViewer(menus.ListPageSource):
 @flags.add_flag("--position", type=int, default=0)
 @flags.add_flag("--user", type=str)
 @flags.add_flag("--price")
+@flags.add_flag("--mobile",action="store_true", default=False)
 @flags.command(name='weekly',help='Show Weekly Challenge Leaderboards.')
 #@commands.cooldown(1, 5, commands.BucketType.user)
 
@@ -578,7 +657,7 @@ async def weeklyChallenge(ctx, **flags):
 					break
 				if entry["rank"] != prev:
 					prev = entry["rank"]
-		pages = menus.MenuPages(source=GeneralLeaderboardViewer(lb,level_obj.name,offset,flags["unbreaking"], level_obj.last_reloaded(), True, level_obj.preview), clear_reactions_after=True)
+		pages = menus.MenuPages(source=GeneralLeaderboardViewer(lb,level_obj.name,offset,flags["unbreaking"], level_obj.last_reloaded(), mobile_view=flags["mobile"], is_weekly_challenge=True, thumbnail_url=level_obj.preview), clear_reactions_after=True)
 		await pages.start(ctx)
 	else:
 		error["occurred"] = True
@@ -597,6 +676,79 @@ async def weeklyChallenge(ctx, **flags):
 
 
 bot.add_command(weeklyChallenge)
+
+@flags.add_flag("--user", type=str)
+@flags.add_flag("--mobile", action="store_true", default=False)
+
+@flags.command(name='oldest',help='Shows the positions which have been held for the longest.')
+
+async def oldest_scores(ctx, **flags):
+	offset = 0
+	message = await ctx.send(
+		embed = discord.Embed(
+			title=f"Processing Data...",
+			colour=discord.Colour(0x3586ff)
+		)
+	)
+	scores = get_oldest_scores_leaderboard()
+	now = time.time()
+	await message.delete()
+	pages = menus.MenuPages(source=OldestLeaderboardViewer(scores, offset, flags["mobile"]), clear_reactions_after=True)
+	await pages.start(ctx)
+
+bot.add_command(oldest_scores)
+
+class OldestLeaderboardViewer(menus.ListPageSource):
+	def __init__(self, data, offset, mobile_view=False):
+		self.data = data
+		self.offs = offset
+		self.first = True
+		self.mobile_view = mobile_view
+		super().__init__(data, per_page=12)
+
+	async def format_page(self, menu, entries):
+		now = time.time()
+		if self.first:
+			self.first = False
+			menu.current_page = math.floor(self.offs/NUMBER_TO_SHOW_TOP)
+			entries = self.data[(self.offs - self.offs % NUMBER_TO_SHOW_TOP):(self.offs - self.offs % NUMBER_TO_SHOW_TOP)+NUMBER_TO_SHOW_TOP]
+		offset = (menu.current_page * self.per_page) + self.offs
+		
+		title = "Oldest Scores"
+		
+		embed = discord.Embed(
+			title=title,
+			colour=discord.Colour(0x3586ff),
+		)
+		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
+		embed.set_author(
+			name="PB2 Leaderboards Bot", 
+			icon_url="https://cdn.discordapp.com/app-assets/720364938908008568/758752385244987423.png"
+		)
+		embed.set_footer(text=f"Page {menu.current_page+1}/{math.ceil(len(self.data)/NUMBER_TO_SHOW_TOP)}")
+		if self.mobile_view:
+			for c, result in enumerate(entries, start=offset):
+				embed.add_field(
+					name=f"`{result['time_rank']}: {result['level_short_name']} - {result['display_name']}`",
+					value=f"#{result['rank']} {nice_time_format(now-result['time'])}",
+					inline=True
+				)
+				#print(f"{c+1}: {i['level_short_name']} - #{i['rank']} - {nice_time_format(now-i['time'])}")
+		else:
+			pass
+			longest = 0
+			description = f"`✱ = Has Breaks`\n"
+			for c, result in enumerate(entries, start=offset):
+				identity = f"{result['time_rank']}: {result['level_short_name']} - {result['display_name']}"
+				if (len(identity) > longest): longest = len(identity)
+
+			for c, result in enumerate(entries, start=offset):
+				identity = f"{result['time_rank']}: {result['level_short_name']} - {result['display_name']}"
+				description += f"`{identity}{' '*(longest-len(identity))} {nice_time_format(now-result['time'])}{' ✱' if result['didBreak'] else ''}`\n"
+			embed.description = description
+		#return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
+		return embed
+
 
 @bot.command(name='id',help='Get the ID of a user')
 async def get_user_id(ctx,user):
@@ -708,9 +860,9 @@ async def help(ctx, command_name=None):
 @bot.event
 async def on_message(message):
 	if isinstance(message.channel, discord.DMChannel):
-            return
+			return
 	if message.author.bot:
-            return
+			return
 
 	if (message.content.lower().split(" ")[0][1:] in command_list):
 		if message.author.id in user_log.keys():

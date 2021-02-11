@@ -11,6 +11,8 @@ Parameters are indicated with <angle brackets> for required fields and [square b
 Parameters:
 -[--unbreaking] Optional |  to indicate you only want unbreaking scores pass this flag as --unbreaking
 
+-[--mobile] Optional | When you specify this flag the bot will return a more mobile friendly layout to the leaderboard.
+
 -[--type] Optional | Indicates the types of levels accounted into the global leaderboard
 	- Default Value: all
 	- Valid Values: [all, regular, challenge, weekly]

@@ -1,1 +1,1 @@
--[leaderboard|lb] <level> [--price <cost>] [--user "username"] [--position <number>] [--unbreaking]
+-[leaderboard|lb] <level> [--price <cost>] [--user "username"] [--position <number>] [--unbreaking] [--mobile]

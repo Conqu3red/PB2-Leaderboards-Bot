@@ -158,17 +158,17 @@
 5-14c:nQm4e:Bus Routes
 5-15c:V6BRD:Acceleration
 5-16c:VPeKo:Double Duty
-6-01:bOeMR:Earth Quake
+6-01:bOeMR:Earthquake!
 6-02:A5XOx:Canyon Carriage
 6-03:nR5Re:Parkade Elevator
-6-04:bm2OL:Bridge like Motion
-6-05:b7WRR:Spring Loaded
-6-06:nXvLa:Get a Grip
-6-07:Vl2Wp:How The Turn Tables
-6-08:VeDY5:Edge Works
-6-09:AGvLD:Squeeze Thou
-6-10:ABND7:Bridge in a Box
-6-11:AaE79:Wall Jumpin
+6-04:bm2OL:Bridgelike Motion
+6-05:VeDY5:EdgeWorks
+6-06:b7WRR:Spring Loaded
+6-07:nXvLa:Get a Grip
+6-08:Vl2Wp:How The Turntables
+6-09:AGvLD:Squeeze Through
+6-10:ABND7:Bridge-in-a-Box
+6-11:AaE79:Wall Jumpin'
 6-12:b3Y34:Mind the Gap
 6-13:bqe7e:Pinball
 6-14:Vwa8y:Spin Cycle

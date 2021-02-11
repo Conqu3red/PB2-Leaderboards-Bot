@@ -1,1 +1,1 @@
--weekly [--week <number>] [--price <cost>] [--user "user"] [--position <number>] [--unbreaking]
+-weekly [--week <number>] [--price <cost>] [--user "user"] [--position <number>] [--unbreaking] [--mobile]

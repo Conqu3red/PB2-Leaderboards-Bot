@@ -14,6 +14,8 @@ Parameters:
 
 -[--unbreaking] Optional |  to indicate you only want unbreaking scores pass this flag as --unbreaking
 
+-[--mobile] Optional | When you specify this flag the bot will return a more mobile friendly layout to the leaderboard.
+
 -[--position] Optional |  Indicates a position you would like to see:  Example: 47
  - Valid Values: Numbers between 0 and 1000
 

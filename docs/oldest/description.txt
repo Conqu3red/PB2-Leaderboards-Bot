@@ -1,14 +1,12 @@
-Description: Get Milestones (Price/rank required for top n%)
+Description: Shows the longest standing #1 positions
 
 Examples:
--milestones 1-04
--milestones 4-3c --unbreaking
+-oldest
+-oldest --unbreaking
 
 Parameters are indicated with <angle brackets> for required fields and [square brackets] for optional fields.
 
 Parameters:
--<Level> Required |  The campaign level number for the level being requested. Example: 1-2c for world 1, level 2, challenge
-
 -[--unbreaking] Optional |  to indicate you only want unbreaking scores pass this flag as --unbreaking
 
 -[--mobile] Optional | When you specify this flag the bot will return a more mobile friendly layout to the leaderboard.
