@@ -154,7 +154,7 @@ class GeneralLeaderboardViewer(menus.ListPageSource):
 				url=self.thumbnail_url
 			)
 		embed.set_footer(
-			text=f"Page {menu.current_page+1}/{math.ceil(len(self.data)/NUMBER_TO_SHOW_TOP)} • {time_since_reload(self.reload_time)}{' • hey, this does not normally appear, I wonder what day it is?' if datetime.datetime.now().month == 3 and datetime.datetime.now().day == 1 and random.randint(0,5) == 2 else ''}"
+			text=f"Page {menu.current_page+1}/{math.ceil(len(self.data)/NUMBER_TO_SHOW_TOP)} • {time_since_reload(self.reload_time)}{' • hey, this does not normally appear, I wonder what day it is?' if datetime.datetime.now().month == 4 and datetime.datetime.now().day == 1 and random.randint(0,5) == 2 else ''}"
 		)
 		#embed.set_image(url="https://cdn.discordapp.com/embed/avatars/0.png")
 		embed.set_author(
@@ -213,7 +213,7 @@ async def profile(ctx, user=None, **flags):
 	# find users positions on global leaderboards:
 	global_positions = {}
 	user_id = ""
-	for level_type in ["all","regular","challenge"]:
+	for level_type in ["all","regular","challenge", "weekly"]:
 		global_leaderboard,id_to_display_names, worlds = get_global_leaderboard(nobreaks, level_type)
 		if user != None:
 				for pos,itm in enumerate(list(global_leaderboard.items())):
@@ -729,8 +729,8 @@ class OldestLeaderboardViewer(menus.ListPageSource):
 		if self.mobile_view:
 			for c, result in enumerate(entries, start=offset):
 				embed.add_field(
-					name=f"`{result['time_rank']}: {result['level_short_name']} - {result['display_name']}`",
-					value=f"#{result['rank']} {nice_time_format(now-result['time'])}",
+					name=f"`{result['time_rank']}: {result['level_short_name']} - {str(result.get('num_players', 0))+' people' if result.get('num_players', 0) else result['owner']['display_name']}`",
+					value=f"{nice_time_format(now-result['time'])}",
 					inline=True
 				)
 				#print(f"{c+1}: {i['level_short_name']} - #{i['rank']} - {nice_time_format(now-i['time'])}")
@@ -739,11 +739,11 @@ class OldestLeaderboardViewer(menus.ListPageSource):
 			longest = 0
 			description = f"`✱ = Has Breaks`\n"
 			for c, result in enumerate(entries, start=offset):
-				identity = f"{result['time_rank']}: {result['level_short_name']} - {result['display_name']}"
+				identity = f"{'🥇🥈🥉'[result['time_rank']-1] if result['time_rank'] <= 3 else result['time_rank']}: {result['level_short_name']} - {str(result.get('num_players', 0))+' people' if result.get('num_players', 0) else result['owner']['display_name']}"
 				if (len(identity) > longest): longest = len(identity)
 
 			for c, result in enumerate(entries, start=offset):
-				identity = f"{result['time_rank']}: {result['level_short_name']} - {result['display_name']}"
+				identity = f"{'🥇🥈🥉'[result['time_rank']-1] if result['time_rank'] <= 3 else result['time_rank']}: {result['level_short_name']} - {str(result.get('num_players', 0))+' people' if result.get('num_players', 0) else result['owner']['display_name']}"
 				description += f"`{identity}{' '*(longest-len(identity))} {nice_time_format(now-result['time'])}{' ✱' if result['didBreak'] else ''}`\n"
 			embed.description = description
 		#return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))

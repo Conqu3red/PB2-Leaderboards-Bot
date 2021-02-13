@@ -294,25 +294,46 @@ def _load_global(nobreaks, level_type="all"):
 		return json.load(f)
 
 def get_oldest_scores_leaderboard():
-	every_score = []
-	# loop to put every leadeboard into one array
-	for level in all_levels.levels:
-		temp_this_level_added = []
-		for current_board in [get_top(level, True), get_top(level, False)]:
-			for score in current_board:
-				if score["rank"] == 1:
-					already_exists = False
-					for s in temp_this_level_added:
-						if s["value"] == score["value"] and s["didBreak"] == score["didBreak"] and s["owner"] == score["owner"]:
-							already_exists = True
-					if not already_exists:
-						every_score.append(score)
-						temp_this_level_added.append(score)
-				else:
-					break
-	leaderboard_sorted = [score for score in sorted(every_score, key=lambda item: item["time"])]
 	leaderboard_ranked = []
-	for c, score in enumerate(leaderboard_sorted):
+	for level in all_levels.levels:
+		data = level.leaderboard
+		scores_for_level = []
+		for referer in ["any", "unbroken"]:
+			if len(data[referer]["top_history"]) > 0:
+				for score in data[referer]["top_history"][-1]["data"][0]: ## loop through #1 scores on this level
+					if score not in scores_for_level: # remove duplicates from any/unbroken
+						scores_for_level.append(score)
+		for score in scores_for_level:
+			user_found = False
+			length = len(data[referer]["top_history"])
+			for index, history_entry in enumerate(reversed(data[referer]["top_history"])):
+				found = False
+				for s in history_entry["data"][0]:
+					if s["owner"]["id"] == score["owner"]["id"]:
+						found = True
+						break
+				if not found:
+					# where the score was first set
+					score["level_short_name"] = level.short_name
+					score["time"] = datetime.datetime.strptime(data[referer]["top_history"][min(0, -index+1)]["time"], "%d/%m/%Y-%H:%M").timestamp()
+					identical_item = next((i for i, item in enumerate(leaderboard_ranked) if item["time"] == score["time"] and item["level_short_name"] == score["level_short_name"] and item["didBreak"] == score["didBreak"]), None)
+					if identical_item != None:
+						leaderboard_ranked[identical_item]["num_players"] = leaderboard_ranked[identical_item].get("num_players", 1)+1
+					else:
+						leaderboard_ranked.append(score)
+					user_found = True
+					break
+			if not user_found:
+				score["level_short_name"] = level.short_name
+				score["time"] = datetime.datetime.strptime(data[referer]["top_history"][0]["time"], "%d/%m/%Y-%H:%M").timestamp()
+				identical_item = next((i for i, item in enumerate(leaderboard_ranked) if item["time"] == score["time"] and item["level_short_name"] == score["level_short_name"] and item["didBreak"] == score["didBreak"]), None)
+				if identical_item != None:
+					leaderboard_ranked[identical_item]["num_players"] = leaderboard_ranked[identical_item].get("num_players", 1)+1
+				else:
+					leaderboard_ranked.append(score)
+	leaderboard = list(sorted(leaderboard_ranked, key = lambda item: item["time"]))
+	leaderboard_ranked = []
+	for c, score in enumerate(leaderboard):
 		score["time_rank"] = c+1
 		leaderboard_ranked.append(score)
 		if len(leaderboard_ranked) > 1:
