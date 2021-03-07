@@ -434,6 +434,7 @@ bot.add_command(milestones)
 @flags.add_flag("--score")
 @flags.add_flag("--worlds", type=str, default=None)
 @flags.add_flag("--mobile", action="store_true", default=False)
+@flags.add_flag("--moneyspent", action="store_true", default=False)
 
 @flags.command(name='globaltop',help='Shows the Global Leaderboard.')
 
@@ -442,7 +443,7 @@ async def globaltop(ctx, **flags):
 	level_type = flags["type"]
 	nobreaks = flags["unbreaking"]
 	level_type = level_type.lower()
-	if level_type not in ["all", "regular", "challenge", "weekly"]:
+	if level_type not in ["all", "regular", "challenge", "weekly"] or (flags["moneyspent"] and level_type == "weekly"):
 		level_type = "all"
 	message = await ctx.send(
 		embed = discord.Embed(
@@ -450,7 +451,7 @@ async def globaltop(ctx, **flags):
 			colour=discord.Colour(0x3586ff)
 			)
 		)
-	global_leaderboard, id_to_display_names, worlds = get_global_leaderboard(nobreaks, level_type, flags["worlds"])
+	global_leaderboard, id_to_display_names, worlds = get_global_leaderboard(nobreaks, level_type, flags["moneyspent"], flags["worlds"])
 	
 		
 	if flags["user"] != None and flags["score"] == None and flags["position"] == 0: # Position Command
@@ -488,8 +489,8 @@ async def globaltop(ctx, **flags):
 			prev = entry["score"]
 		if not found_price:
 			embed = discord.Embed(
-				title=f"Price Out of top 1000",
-				description="There are no scores at that price in the top 1000.",
+				title=f"Score not found",
+				description="There are no at that value in the global leaderboard.",
 				colour=discord.Colour(0xf93a2f),
 			)
 			await ctx.send(embed=embed)
@@ -516,7 +517,7 @@ async def globaltop(ctx, **flags):
 	for c,itm in enumerate(list(global_leaderboard.items())):
 		lb.append({
 				"name":f"{'🥇🥈🥉'[itm[1]['rank']] if itm[1]['rank']+1 <= 3 else itm[1]['rank']+1}: {id_to_display_names[itm[0]]}",
-				"value":f"Score: {itm[1]['score']}",
+				"value":f"Spent: {'${:,}'.format(int(itm[1]['score']))}" if flags["moneyspent"] else f"Score: {itm[1]['score']}",
 				"inline":True
 		}
 		)
@@ -676,8 +677,8 @@ async def weeklyChallenge(ctx, **flags):
 
 
 bot.add_command(weeklyChallenge)
-
-@flags.add_flag("--user", type=str)
+@flags.add_flag("--unbreaking", action="store_true", default=False)
+#@flags.add_flag("--user", type=str)
 @flags.add_flag("--mobile", action="store_true", default=False)
 
 @flags.command(name='oldest',help='Shows the positions which have been held for the longest.')
@@ -690,19 +691,20 @@ async def oldest_scores(ctx, **flags):
 			colour=discord.Colour(0x3586ff)
 		)
 	)
-	scores = get_oldest_scores_leaderboard()
+	scores = get_oldest_scores_leaderboard(unbroken=flags["unbreaking"])
 	now = time.time()
 	await message.delete()
-	pages = menus.MenuPages(source=OldestLeaderboardViewer(scores, offset, flags["mobile"]), clear_reactions_after=True)
+	pages = menus.MenuPages(source=OldestLeaderboardViewer(scores, offset, flags["unbreaking"], flags["mobile"]), clear_reactions_after=True)
 	await pages.start(ctx)
 
 bot.add_command(oldest_scores)
 
 class OldestLeaderboardViewer(menus.ListPageSource):
-	def __init__(self, data, offset, mobile_view=False):
+	def __init__(self, data, offset, unbroken=False, mobile_view=False):
 		self.data = data
 		self.offs = offset
 		self.first = True
+		self.unbroken = unbroken
 		self.mobile_view = mobile_view
 		super().__init__(data, per_page=12)
 
@@ -714,7 +716,7 @@ class OldestLeaderboardViewer(menus.ListPageSource):
 			entries = self.data[(self.offs - self.offs % NUMBER_TO_SHOW_TOP):(self.offs - self.offs % NUMBER_TO_SHOW_TOP)+NUMBER_TO_SHOW_TOP]
 		offset = (menu.current_page * self.per_page) + self.offs
 		
-		title = "Oldest Scores"
+		title = "Oldest Scores" + " (Unbreaking)" if self.unbroken else ""
 		
 		embed = discord.Embed(
 			title=title,

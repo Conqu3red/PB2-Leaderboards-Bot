@@ -28,7 +28,11 @@ Parameters:
 -[--score] Optional | Will start at the point in the global leaderboard with this score: Example: 9,000
 	- Default Value: (nothing)
 
--[--world] Optionat | Choose the worlds that should be included when caculating the leaderboard
+-[--moneyspent] Optional
+    - when set, this command will return the total money everyone has spent instead of the score based on their rank
+    - Note: if a user isn't in the top 1000 for a level they are assumed to have the default budget for that level
+
+-[--world] Optional | Choose the worlds that should be included when caculating the leaderboard
 	- Enter one value ("1c") or multiple - comma seperated ("1,1c,2,2c")
 	- Valid Values:
 		1, 1c, 2, 2c, 3, 3c, 4, 4c, 5, 5c, 6

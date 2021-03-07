@@ -1,4 +1,4 @@
-import requests, json, time, os, datetime
+import requests, json, time, os, datetime, traceback
 weekly_url = "https://dfp529wcvahka.cloudfront.net/manifests/weeklyChallenges.json"
 download_url = "http://dfp529wcvahka.cloudfront.net/manifests/leaderboards/scores/{0}.json"
 download_challenges_url = "https://dfp529wcvahka.cloudfront.net/manifests/leaderboards/challenges/scores/{0}.json"
@@ -107,7 +107,7 @@ class WeeklyLevels:
 
 
 class Level:
-	def __init__(self,id=None, name="", short_name=ShortName(), isweekly=False,
+	def __init__(self,id=None, name="", short_name=ShortName(),budget=0 , isweekly=False,
 	json_folder="data/", extension=".json", reload_every=28000, week=0, preview=""):
 		self.weekly_prepend = "WC."
 		self.base_id = id
@@ -115,6 +115,7 @@ class Level:
 		if not isinstance(short_name, ShortName) and not isweekly:
 			short_name = ShortName(short_name)
 		self.short_name = short_name
+		self.budget = budget
 		self.world = None
 		self.isweekly = isweekly
 		self.json_folder = json_folder
@@ -125,85 +126,79 @@ class Level:
 
 	
 	def reload_leaderboard(self):
-		leaderboard_id = self.id
-		if not self.isweekly: # Normal level
-			url = download_url.format(leaderboard_id)
-		else: # Weekly level
-			url = download_challenges_url.format(leaderboard_id[3:])
-		r = requests.get(url)
-		data = r.json()#with open(f"data/{leaderboard_id}.json", "r") as f: data = json.load(f)
+		try:
+			leaderboard_id = self.id
+			if not self.isweekly: # Normal level
+				url = download_url.format(leaderboard_id)
+			else: # Weekly level
+				url = download_challenges_url.format(leaderboard_id[3:])
+			r = requests.get(url)
+			data = r.json()#with open(f"data/{leaderboard_id}.json", "r") as f: data = json.load(f)
 
-		old_data_exists = False
-		if (os.path.exists(f"data/{leaderboard_id}.json")):
-			with open(f"data/{leaderboard_id}.json", "r") as cache_file:
-				old_data = json.load(cache_file)
-			old_data_exists = True
-		else:
-			old_data = {}
-		#set rankings
-		top_history_any = old_data.get("any", {}).get("top_history", [])
-		top_history_unbroken = old_data.get("unbroken", {}).get("top_history", [])
-		
-		rank_adjusted = {"any":{"top1000":[], "top_history":top_history_any},"unbroken":{"top1000":[], "top_history":top_history_unbroken}}
-		for referer in ["any", "unbroken"]:
-			#print(referer)
-			for rank, score in enumerate(data[referer]["top1000"]):
-				score["rank"] = rank+1
-				rank_adjusted[referer]["top1000"].append(score)
-				if len(rank_adjusted[referer]["top1000"]) > 1: # tie adjustment
-					if score["value"] == rank_adjusted[referer]["top1000"][rank-1]["value"]:
-						rank_adjusted[referer]["top1000"][-1]["rank"] = rank_adjusted[referer]["top1000"][-2]["rank"]
-			#for score in rank_adjusted[referer]["top1000"]:
-			#	print(score["rank"], score["value"])
-		# timestamps
-		now = datetime.datetime.now()
-		data = rank_adjusted
-		timestamp = datetime.datetime.strftime(now, "%d/%m/%Y-%H:%M")
-		# set up top ranks for storage in top_history
-		for referer in ["any", "unbroken"]:
-			current_top = [[] for _ in range(1,26)]
-			for score in data[referer]["top1000"]:
-				if score["rank"] > 25: break
-				current_top[score["rank"]-1].append(score)
-			data[referer]["top_history"].append({"time":timestamp, "data":current_top})
-		
-		# identify users with removed scores
-		for referer in ["any", "unbroken"]:
-			user_ids_removed = []
-			# detect removed users
-			if old_data_exists:
-				for old_score in old_data[referer]["top1000"]:
-					if old_score["rank"] != 1: break
-					found = False
-					for r, score in enumerate(data[referer]["top1000"]):
-						if old_score["owner"]["id"] == score["owner"]["id"]:
-							if old_score["value"] > score["value"]:
-								user_ids_removed.append(old_score["owner"]["id"])
-							found = True
-							break
-					if not found: user_ids_removed.append(old_score["owner"]["id"])
-			top_history_fixed = []
-			for user_id in user_ids_removed:
-				print(f"User with id {user_id} was detected as having a score removed/was banned - fixing top history...")
-			# fix top_history
-			for history_entry in data[referer]["top_history"]:
-				history_entry_fixed = {"time":history_entry["time"],"data":[]}
-				
-				for scores in history_entry["data"]:
-					scores_fixed = []
-					for score in scores:
-						if score["owner"]["id"] not in user_ids_removed: 
-							scores_fixed.append(score)
-					if len(scores_fixed) > 0: 
-						history_entry_fixed["data"].append(scores_fixed)
+			old_data_exists = False
+			if (os.path.exists(f"data/{leaderboard_id}.json")):
+				with open(f"data/{leaderboard_id}.json", "r") as cache_file:
+					old_data = json.load(cache_file)
+				old_data_exists = True
+			else:
+				old_data = {}
+			#set rankings
+			top_history_any = old_data.get("any", {}).get("top_history", [])
+			top_history_unbroken = old_data.get("unbroken", {}).get("top_history", [])
 
-				top_history_fixed.append(history_entry_fixed)
-			data[referer]["top_history"] = top_history_fixed
-		# save
-		with open(f"data/{leaderboard_id}.json", "w") as cache_file:
-			json.dump(rank_adjusted, cache_file)
-		print(f"[CacheManager] Updated Cache for {leaderboard_id}")
-	
+			rank_adjusted = {"any":{"top1000":[], "top_history":top_history_any},"unbroken":{"top1000":[], "top_history":top_history_unbroken}}
+			for referer in ["any", "unbroken"]:
+				#print(referer)
+				for rank, score in enumerate(data[referer]["top1000"]):
+					score["rank"] = rank+1
+					rank_adjusted[referer]["top1000"].append(score)
+					if len(rank_adjusted[referer]["top1000"]) > 1: # tie adjustment
+						if score["value"] == rank_adjusted[referer]["top1000"][rank-1]["value"]:
+							rank_adjusted[referer]["top1000"][-1]["rank"] = rank_adjusted[referer]["top1000"][-2]["rank"]
+				#for score in rank_adjusted[referer]["top1000"]:
+				#	print(score["rank"], score["value"])
+			# timestamps
+			now = datetime.datetime.now()
+			data = rank_adjusted
+			timestamp = datetime.datetime.strftime(now, "%d/%m/%Y-%H:%M")
+			# set up top ranks for storage in top_history
+			for referer in ["any", "unbroken"]:
+				current_top = []
+				for score in data[referer]["top1000"]:
+					if score["rank"] > 25: break
+					score["time"] = timestamp
+					current_top.append(score)
+				score_ids = [score["id"] for score in data[referer]["top_history"]]
+				data[referer]["top_history"] += [score for score in current_top if score["id"] not in score_ids]
+
+			# identify users with removed scores
+			for referer in ["any", "unbroken"]:
+				user_ids_removed = []
+				# detect removed users
+				if old_data_exists:
+					for old_score in old_data[referer]["top1000"]:
+						if old_score["rank"] != 1: break
+						found = False
+						for r, score in enumerate(data[referer]["top1000"]):
+							if old_score["owner"]["id"] == score["owner"]["id"]:
+								if old_score["value"] < score["value"]:
+									user_ids_removed.append(old_score["owner"]["id"])
+								found = True
+								break
+						if not found: user_ids_removed.append(old_score["owner"]["id"])
+				for user_id in user_ids_removed:
+					print(f"User with id {user_id} was detected as having a score removed/was banned - fixing top history...")
+				# fix top_history
+				top_history_fixed = [score for score in data[referer]["top_history"] if score["owner"]["id"] not in user_ids_removed]
+				data[referer]["top_history"] = top_history_fixed
+			# save
+			with open(f"data/{leaderboard_id}.json", "w") as cache_file:
+				json.dump(rank_adjusted, cache_file)
+			print(f"[CacheManager] Updated Cache for {leaderboard_id}")
+		except Exception as e:
+			print(e)
+			traceback.print_tb(e.__traceback__)
+
 	def last_reloaded(self):
 		try:
 			cache_last_reloaded = os.path.getmtime(f"data/{self.id}.json")

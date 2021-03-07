@@ -1,1 +1,1 @@
--globaltop  [--score <number>] [--user "username"] [--position <number>] [--type all|regular|challenge|weekly] [--world "world(s)"] [--unbreaking] [--mobile]
+-globaltop  [--score <number>] [--user "username"] [--position <number>] [--type all|regular|challenge|weekly] [--world "world(s)"] [--moneyspent] [--unbreaking] [--mobile]

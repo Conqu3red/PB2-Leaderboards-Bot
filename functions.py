@@ -29,7 +29,7 @@ with open("level_names.txt", "r") as f:
 all_levels = AllLevels()
 for i in level_data:
 	data = i.split(":")
-	all_levels.levels.append(Level(id=data[1],name=data[2],short_name=data[0]))
+	all_levels.levels.append(Level(id=data[1].strip(),name=data[2].strip(),short_name=data[0].strip(), budget=float(data[3].strip())))
 
 # populate WeeklyLevels with data
 weekly_levels = WeeklyLevels()
@@ -224,7 +224,7 @@ def parse_price_input(price):
 def get_rank(leaderboard_id, price, unbroken):
 	pass
 
-def get_global_leaderboard(unbroken,level_type="all", worlds=None):
+def get_global_leaderboard(unbroken,level_type="all", moneyspent=False, worlds=None):
 	# level_type = all , regular , challenge
 	levels = []
 	# parse inputted worlds
@@ -261,7 +261,10 @@ def get_global_leaderboard(unbroken,level_type="all", worlds=None):
 	referer = "any"
 	if unbroken:
 		referer = "unbroken"
-	start_score = 100*len(levels)
+	if moneyspent:
+		start_score = sum([level.budget for level in levels])
+	else:
+		start_score = 100*len(levels)
 	for level in levels:
 		#print(level)
 		#leaderboard_id = get_level_id(level) # get leaderboard id level
@@ -270,7 +273,10 @@ def get_global_leaderboard(unbroken,level_type="all", worlds=None):
 			if not leaderboard.get(score["owner"]["id"], None):
 				id_to_display_names[score["owner"]["id"]] = score["owner"]["display_name"]
 				leaderboard[score["owner"]["id"]] = start_score
-			leaderboard[score["owner"]["id"]] += int(rank_to_score[score["rank"]])-100
+			if moneyspent:
+				leaderboard[score["owner"]["id"]] -= (level.budget-score["value"])
+			else:
+				leaderboard[score["owner"]["id"]] += int(rank_to_score[score["rank"]])-100
 			#leaderboard[score["owner"]["id"]] = leaderboard.get(score["owner"]["id"], start_score)+int(rank_to_score[score["rank"]])-100
 
 	leaderboard_sorted = {user_id: score for user_id, score in sorted(leaderboard.items(), key=lambda item: item[1])}
@@ -293,44 +299,71 @@ def _load_global(nobreaks, level_type="all"):
 	with open(f"data/global_{level_type}_{nobreaks}.json", "r") as f:
 		return json.load(f)
 
-def get_oldest_scores_leaderboard():
+def get_oldest_scores_leaderboard(unbroken=False):
+	referer = "unbroken" if unbroken else "any"
 	leaderboard_ranked = []
 	for level in all_levels.levels:
 		data = level.leaderboard
 		scores_for_level = []
-		for referer in ["any", "unbroken"]:
-			if len(data[referer]["top_history"]) > 0:
-				for score in data[referer]["top_history"][-1]["data"][0]: ## loop through #1 scores on this level
-					if score not in scores_for_level: # remove duplicates from any/unbroken
-						scores_for_level.append(score)
+		
+		lowest_price = min([score["value"] for score in data[referer]["top_history"]])
+		scores_for_level = [score for score in data[referer]["top_history"] if score["value"] == lowest_price]
+		
+		# - split top_history into time brackets (sorted newest to oldest)
+		time_brackets = {}
+		for score in data[referer]["top_history"]:
+			if time_brackets.get(datetime.datetime.strptime(score["time"], "%d/%m/%Y-%H:%M").timestamp()):
+				time_brackets[datetime.datetime.strptime(score["time"], "%d/%m/%Y-%H:%M").timestamp()].append(score)
+				continue
+			time_brackets[datetime.datetime.strptime(score["time"], "%d/%m/%Y-%H:%M").timestamp()] = [score]
+		
+		for t in time_brackets:
+			price = min([score["value"] for score in time_brackets[t]])
+			time_brackets[t] = [score for score in time_brackets[t] if score["value"] == price]
+		time_brackets = dict(sorted(time_brackets.items(), reverse=True))
+		#print(time_brackets)
+
+
+		# for each #1 user, loop back to check how many scores they have had consecutively #1
 		for score in scores_for_level:
-			user_found = False
-			length = len(data[referer]["top_history"])
-			for index, history_entry in enumerate(reversed(data[referer]["top_history"])):
-				found = False
-				for s in history_entry["data"][0]:
+			score["level_short_name"] = str(level.short_name)
+			all_of_this_users_prices = [s for s in data[referer]["top_history"] if s["owner"]["id"] == score["owner"]["id"]]
+			i = 1
+			score["time"] = datetime.datetime.strptime(score["time"], "%d/%m/%Y-%H:%M").timestamp()
+			if len(all_of_this_users_prices) < 2:
+				continue
+			
+			for t, time_bracket in time_brackets.items():
+				found_streak_break = False
+				for s in time_bracket: # #1 scores in the bracket
 					if s["owner"]["id"] == score["owner"]["id"]:
-						found = True
+						score["time"] = t
+						i += 1
+					if i >= len(all_of_this_users_prices):
 						break
-				if not found:
-					# where the score was first set
-					score["level_short_name"] = level.short_name
-					score["time"] = datetime.datetime.strptime(data[referer]["top_history"][min(0, -index+1)]["time"], "%d/%m/%Y-%H:%M").timestamp()
-					identical_item = next((i for i, item in enumerate(leaderboard_ranked) if item["time"] == score["time"] and item["level_short_name"] == score["level_short_name"] and item["didBreak"] == score["didBreak"]), None)
-					if identical_item != None:
-						leaderboard_ranked[identical_item]["num_players"] = leaderboard_ranked[identical_item].get("num_players", 1)+1
-					else:
-						leaderboard_ranked.append(score)
-					user_found = True
+					if s["value"] != score["value"] and s["value"] < all_of_this_users_prices[i]:
+						found_streak_break = True
+				if found_streak_break:
 					break
-			if not user_found:
-				score["level_short_name"] = level.short_name
-				score["time"] = datetime.datetime.strptime(data[referer]["top_history"][0]["time"], "%d/%m/%Y-%H:%M").timestamp()
-				identical_item = next((i for i, item in enumerate(leaderboard_ranked) if item["time"] == score["time"] and item["level_short_name"] == score["level_short_name"] and item["didBreak"] == score["didBreak"]), None)
-				if identical_item != None:
-					leaderboard_ranked[identical_item]["num_players"] = leaderboard_ranked[identical_item].get("num_players", 1)+1
-				else:
-					leaderboard_ranked.append(score)
+		scores_for_level_without_duplicates = []
+		
+		# group scores that are "identical"
+		for score in scores_for_level:
+			identical_score = next(
+				(
+					i for i,s in enumerate(scores_for_level_without_duplicates) if s["value"] == score["value"] and 
+						s["didBreak"] == score["didBreak"] and 
+						s["time"] == score["time"]
+				), 
+				None
+			)
+			if identical_score != None:
+				scores_for_level_without_duplicates[identical_score]["num_players"] = scores_for_level_without_duplicates[identical_score].get("num_players", 1) + 1
+			else:
+				scores_for_level_without_duplicates.append(score)
+		leaderboard_ranked += scores_for_level_without_duplicates
+	
+	# sort and rank the scores
 	leaderboard = list(sorted(leaderboard_ranked, key = lambda item: item["time"]))
 	leaderboard_ranked = []
 	for c, score in enumerate(leaderboard):
