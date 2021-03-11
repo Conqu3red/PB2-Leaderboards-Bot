@@ -341,7 +341,7 @@ def get_oldest_scores_leaderboard(unbroken=False):
 						i += 1
 					if i >= len(all_of_this_users_prices):
 						break
-					if s["value"] != score["value"] and s["value"] < all_of_this_users_prices[i]:
+					if s["value"] != score["value"] and s["value"] < all_of_this_users_prices[i]["value"]:
 						found_streak_break = True
 				if found_streak_break:
 					break
