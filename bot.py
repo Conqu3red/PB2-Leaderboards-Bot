@@ -866,21 +866,7 @@ async def on_message(message):
 	if message.author.bot:
 			return
 
-	if (message.content.lower().split(" ")[0][1:] in command_list):
-		if message.author.id in user_log.keys():
-			diff_time = (datetime.datetime.now() - user_log[message.author.id]).seconds
-			if diff_time <= 5:
-				embed = discord.Embed(
-					title="Uh oh! You've hit the ratelimit.", 
-					colour=discord.Colour(0xf93a2f), 
-					description="<@" + str(message.author.id) + ">, please wait " + str(5 - diff_time) + " seconds to use the bot..."
-				)
-				await message.channel.send(embed=embed)
-				return
-		user_log[message.author.id] = datetime.datetime.now()
-		await bot.process_commands(message)
-	else:
-		return
+	await bot.process_commands(message)
 
 
 @bot.event

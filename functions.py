@@ -322,26 +322,31 @@ def get_oldest_scores_leaderboard(unbroken=False):
 			time_brackets[t] = [score for score in time_brackets[t] if score["value"] == price]
 		time_brackets = dict(sorted(time_brackets.items(), reverse=True))
 		#print(time_brackets)
-
+		#def ps(s):
+		#	return f"{s['owner']['display_name']} {s['value']}"
 
 		# for each #1 user, loop back to check how many scores they have had consecutively #1
 		for score in scores_for_level:
 			score["level_short_name"] = str(level.short_name)
 			all_of_this_users_prices = [s for s in data[referer]["top_history"] if s["owner"]["id"] == score["owner"]["id"]]
-			i = 1
+			i = len(all_of_this_users_prices) - 1
 			score["time"] = datetime.datetime.strptime(score["time"], "%d/%m/%Y-%H:%M").timestamp()
 			if len(all_of_this_users_prices) < 2:
 				continue
-			
+			#print(all_of_this_users_prices)
+			#print(time_brackets)
 			for t, time_bracket in time_brackets.items():
 				found_streak_break = False
 				for s in time_bracket: # #1 scores in the bracket
 					if s["owner"]["id"] == score["owner"]["id"]:
 						score["time"] = t
-						i += 1
-					if i >= len(all_of_this_users_prices):
+						i += -1
+						continue
+					if i < 0:
 						break
+					#print(f"{ps(all_of_this_users_prices[i])} {ps(s)}")
 					if s["value"] != score["value"] and s["value"] < all_of_this_users_prices[i]["value"]:
+						#print("Streak Broken")
 						found_streak_break = True
 				if found_streak_break:
 					break
