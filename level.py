@@ -108,7 +108,7 @@ class WeeklyLevels:
 
 class Level:
 	def __init__(self,id=None, name="", short_name=ShortName(),budget=0 , isweekly=False,
-	json_folder="data/", extension=".json", reload_every=28000, week=0, preview=""):
+	json_folder="data/", extension=".json", reload_every=28000, week=0, preview="", isTest=False):
 		self.weekly_prepend = "WC."
 		self.base_id = id
 		self.name = name
@@ -123,17 +123,21 @@ class Level:
 		self.reload_every = reload_every
 		self.week = week
 		self.preview = preview
+		self.isTest = isTest
 
 	
-	def reload_leaderboard(self):
+	def reload_leaderboard(self, new_data=None):
 		try:
 			leaderboard_id = self.id
-			if not self.isweekly: # Normal level
-				url = download_url.format(leaderboard_id)
-			else: # Weekly level
-				url = download_challenges_url.format(leaderboard_id[3:])
-			r = requests.get(url)
-			data = r.json()#with open(f"data/{leaderboard_id}.json", "r") as f: data = json.load(f)
+			if self.isTest: # debug for testing
+				data = new_data
+			else:
+				if not self.isweekly: # Normal level
+					url = download_url.format(leaderboard_id)
+				else: # Weekly level
+					url = download_challenges_url.format(leaderboard_id[3:])
+				r = requests.get(url)
+				data = r.json()
 
 			old_data_exists = False
 			if (os.path.exists(f"data/{leaderboard_id}.json")):
@@ -191,12 +195,18 @@ class Level:
 				# fix top_history
 				top_history_fixed = [score for score in data[referer]["top_history"] if score["owner"]["id"] not in user_ids_removed]
 				data[referer]["top_history"] = top_history_fixed
+			
+			# weekly levels don't need oldest history data, should really not compute it at all, but this works
+			if self.isweekly:
+				rank_adjusted["any"]["top_history"] = []
+				rank_adjusted["unbroken"]["top_history"] = []
+			
 			# save
 			with open(f"data/{leaderboard_id}.json", "w") as cache_file:
 				json.dump(rank_adjusted, cache_file)
 			print(f"[CacheManager] Updated Cache for {leaderboard_id}")
 		except Exception as e:
-			print(e)
+			print(repr(e))
 			traceback.print_tb(e.__traceback__)
 
 	def last_reloaded(self):

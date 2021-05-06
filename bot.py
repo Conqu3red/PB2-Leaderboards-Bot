@@ -679,11 +679,14 @@ async def weeklyChallenge(ctx, **flags):
 bot.add_command(weeklyChallenge)
 @flags.add_flag("--unbreaking", action="store_true", default=False)
 #@flags.add_flag("--user", type=str)
+@flags.add_flag("--level", type=ShortName)
+@flags.add_flag("--uploadhistory", action="store_true", default=False)
 @flags.add_flag("--mobile", action="store_true", default=False)
 
 @flags.command(name='oldest',help='Shows the positions which have been held for the longest.')
 
 async def oldest_scores(ctx, **flags):
+	level = flags.get("level")
 	offset = 0
 	message = await ctx.send(
 		embed = discord.Embed(
@@ -692,6 +695,20 @@ async def oldest_scores(ctx, **flags):
 		)
 	)
 	scores = get_oldest_scores_leaderboard(unbroken=flags["unbreaking"])
+	if level:
+		scores = [score for score in scores if score["level_short_name"] == str(level)]
+		l = all_levels.getByShortName(str(level))
+		if l and flags["uploadhistory"]:
+			data = {
+				"any": l.leaderboard["any"]["top_history"],
+				"unbroken": l.leaderboard["unbroken"]["top_history"],
+			}
+			with open("data/temp.temp", "w") as f:
+				json.dump(data, f)
+			with open("data/temp.temp", "rb") as f:
+				await ctx.send(
+					file = discord.File(f, filename=f"oldest_data_{level}.json")
+				)
 	now = time.time()
 	await message.delete()
 	pages = menus.MenuPages(source=OldestLeaderboardViewer(scores, offset, flags["unbreaking"], flags["mobile"]), clear_reactions_after=True)

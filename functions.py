@@ -276,7 +276,7 @@ def get_global_leaderboard(unbroken,level_type="all", moneyspent=False, worlds=N
 			if moneyspent:
 				leaderboard[score["owner"]["id"]] -= (level.budget-score["value"])
 			else:
-				leaderboard[score["owner"]["id"]] += int(rank_to_score[score["rank"]])-100
+				leaderboard[score["owner"]["id"]] += int(rank_to_score[score["rank"]-1])-100
 			#leaderboard[score["owner"]["id"]] = leaderboard.get(score["owner"]["id"], start_score)+int(rank_to_score[score["rank"]])-100
 
 	leaderboard_sorted = {user_id: score for user_id, score in sorted(leaderboard.items(), key=lambda item: item[1])}
@@ -306,8 +306,8 @@ def get_oldest_scores_leaderboard(unbroken=False):
 		data = level.leaderboard
 		scores_for_level = []
 		
-		lowest_price = min([score["value"] for score in data[referer]["top_history"]])
-		scores_for_level = [score for score in data[referer]["top_history"] if score["value"] == lowest_price]
+		top_ids = [score["id"] for score in data[referer]["top1000"] if score["rank"] == 1]
+		scores_for_level = [score for score in data[referer]["top_history"] if score["id"] in top_ids]
 		
 		# - split top_history into time brackets (sorted newest to oldest)
 		time_brackets = {}
@@ -328,9 +328,13 @@ def get_oldest_scores_leaderboard(unbroken=False):
 		# for each #1 user, loop back to check how many scores they have had consecutively #1
 		for score in scores_for_level:
 			score["level_short_name"] = str(level.short_name)
-			all_of_this_users_prices = [s for s in data[referer]["top_history"] if s["owner"]["id"] == score["owner"]["id"]]
+			all_of_this_users_prices = sorted(
+				[s for s in data[referer]["top_history"] if s["owner"]["id"] == score["owner"]["id"]],
+				key=lambda s: datetime.datetime.strptime(s["time"], "%d/%m/%Y-%H:%M").timestamp() if isinstance(s["time"], str) else s["time"]
+			)
 			i = len(all_of_this_users_prices) - 1
 			score["time"] = datetime.datetime.strptime(score["time"], "%d/%m/%Y-%H:%M").timestamp()
+			score_time = score["time"]
 			if len(all_of_this_users_prices) < 2:
 				continue
 			#print(all_of_this_users_prices)
@@ -339,17 +343,30 @@ def get_oldest_scores_leaderboard(unbroken=False):
 				found_streak_break = False
 				for s in time_bracket: # #1 scores in the bracket
 					if s["owner"]["id"] == score["owner"]["id"]:
-						score["time"] = t
+						score_time = t
 						i += -1
 						continue
-					if i < 0:
-						break
+					
 					#print(f"{ps(all_of_this_users_prices[i])} {ps(s)}")
 					if s["value"] != score["value"] and s["value"] < all_of_this_users_prices[i]["value"]:
-						#print("Streak Broken")
+						s_time = datetime.datetime.strptime(s["time"], "%d/%m/%Y-%H:%M").timestamp()
+						#print("Streak Broken. backstepping...")
+						for c, user_score in enumerate(reversed(all_of_this_users_prices)):
+							if user_score["value"] < s["value"]:
+								user_time = user_score["time"]
+								if isinstance(user_score["time"], str):
+									user_time = datetime.datetime.strptime(user_score["time"], "%d/%m/%Y-%H:%M").timestamp()
+								#print(user_time, s["time"])
+								if user_time >= s_time:
+									#print("backstep to", user_score["id"], user_score["value"])
+									i = len(all_of_this_users_prices) - 1 - c
+									score_time = user_time
+									#print(score)
 						found_streak_break = True
+						break
 				if found_streak_break:
 					break
+			score["time"] = score_time
 		scores_for_level_without_duplicates = []
 		
 		# group scores that are "identical"
