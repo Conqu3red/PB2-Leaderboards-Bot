@@ -1,10 +1,14 @@
 from functions import *
 import sys
 level = sys.argv[1]
+if len(sys.argv) > 2:
+	path = sys.argv[2]
+else:
+	path = ""
 level_id = all_levels.getByShortName(level).id
 print(level_id)
 
-with open(f"C:\\Users/jackb/downloads/oldest_data_{level}.json") as f:
+with open(f"{path}/oldest_data_{level}.json") as f:
 	old_data = json.load(f)
 
 with open(f"data/{level_id}.json", "r") as f:
