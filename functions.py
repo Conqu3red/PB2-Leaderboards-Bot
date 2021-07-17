@@ -299,74 +299,95 @@ def _load_global(nobreaks, level_type="all"):
 	with open(f"data/global_{level_type}_{nobreaks}.json", "r") as f:
 		return json.load(f)
 
+def string_to_timestamp(s: str) -> float:
+	return datetime.datetime.strptime(s, "%d/%m/%Y-%H:%M").timestamp()
+
+def create_time_brackets(data: dict):
+	time_brackets = {}
+	# insert scores into relevant time brackets
+	for score in data["top_history"]:
+		if time_brackets.get(datetime.datetime.strptime(score["time"], "%d/%m/%Y-%H:%M").timestamp()):
+			time_brackets[datetime.datetime.strptime(score["time"], "%d/%m/%Y-%H:%M").timestamp()].append(score)
+			continue
+		time_brackets[datetime.datetime.strptime(score["time"], "%d/%m/%Y-%H:%M").timestamp()] = [score]
+	
+	time_brackets = dict(sorted(time_brackets.items(), reverse=True))
+	return time_brackets
+
+def how_long_user_top(users_scores: list, time_brackets: dict):
+	index = 0
+	current = users_scores[index]
+
+	if len(users_scores) < 2:
+		return current
+	
+	index += 1
+	next_score = users_scores[index]
+
+	time_keys = list(time_brackets.keys())
+	
+	while True:
+		if any(
+			any(
+				current["value"] <= score["value"] < next_score["value"] and score["owner"]["id"] != current["owner"]["id"] for score in time_brackets[bracket_key]
+			) for bracket_key in time_keys[time_keys.index(string_to_timestamp(current["time"])):time_keys.index(string_to_timestamp(next_score["time"]))] # +1:
+		):
+			# someone beat next_score after it was set, return current
+			return current
+		
+		if any(
+			any(
+				current["value"] <= score["value"] < next_score["value"] and score["owner"]["id"] != current["owner"]["id"] for score in time_brackets[bracket_key]
+			) for bracket_key in time_keys[time_keys.index(string_to_timestamp(next_score["time"])):] # +1:
+		):
+			# someone was ahead of the users next_score before they set it, return current
+			return current
+		
+		current = next_score
+		index += 1
+		if index >= len(users_scores):
+			return current
+		next_score = users_scores[index]
+		
+
+def compute_oldest_ranks(leaderboard):
+	leaderboard_ranked = []
+	for c, score in enumerate(leaderboard):
+		score["time_rank"] = c+1
+		leaderboard_ranked.append(score)
+		if len(leaderboard_ranked) > 1:
+			if score["time"] == leaderboard_ranked[-2]["time"]:
+				leaderboard_ranked[-1]["time_rank"] = leaderboard_ranked[-2]["time_rank"]
+	return leaderboard_ranked
+
+
 def get_oldest_scores_leaderboard(unbroken=False):
 	referer = "unbroken" if unbroken else "any"
 	leaderboard_ranked = []
+	#for level in [all_levels.getByShortName("2-1")]:
 	for level in all_levels.levels:
 		data = level.leaderboard
 		scores_for_level = []
 		
 		top_ids = [score["id"] for score in data[referer]["top1000"] if score["rank"] == 1]
 		scores_for_level = [score for score in data[referer]["top_history"] if score["id"] in top_ids]
-		
+
 		# - split top_history into time brackets (sorted newest to oldest)
-		time_brackets = {}
-		for score in data[referer]["top_history"]:
-			if time_brackets.get(datetime.datetime.strptime(score["time"], "%d/%m/%Y-%H:%M").timestamp()):
-				time_brackets[datetime.datetime.strptime(score["time"], "%d/%m/%Y-%H:%M").timestamp()].append(score)
-				continue
-			time_brackets[datetime.datetime.strptime(score["time"], "%d/%m/%Y-%H:%M").timestamp()] = [score]
+		time_brackets = create_time_brackets(data[referer])
 		
-		for t in time_brackets:
-			price = min([score["value"] for score in time_brackets[t]])
-			time_brackets[t] = [score for score in time_brackets[t] if score["value"] == price]
-		time_brackets = dict(sorted(time_brackets.items(), reverse=True))
-		#print(time_brackets)
-		#def ps(s):
-		#	return f"{s['owner']['display_name']} {s['value']}"
 
 		# for each #1 user, loop back to check how many scores they have had consecutively #1
 		for score in scores_for_level:
 			score["level_short_name"] = str(level.short_name)
 			all_of_this_users_prices = sorted(
 				[s for s in data[referer]["top_history"] if s["owner"]["id"] == score["owner"]["id"]],
-				key=lambda s: datetime.datetime.strptime(s["time"], "%d/%m/%Y-%H:%M").timestamp() if isinstance(s["time"], str) else s["time"]
+				key=lambda s: datetime.datetime.strptime(s["time"], "%d/%m/%Y-%H:%M").timestamp() if isinstance(s["time"], str) else s["time"],
+				reverse=True
 			)
-			i = len(all_of_this_users_prices) - 1
-			score["time"] = datetime.datetime.strptime(score["time"], "%d/%m/%Y-%H:%M").timestamp()
-			score_time = score["time"]
-			if len(all_of_this_users_prices) < 2:
-				continue
-			#print(all_of_this_users_prices)
-			#print(time_brackets)
-			for t, time_bracket in time_brackets.items():
-				found_streak_break = False
-				for s in time_bracket: # #1 scores in the bracket
-					if s["owner"]["id"] == score["owner"]["id"]:
-						score_time = t
-						i += -1
-						continue
-					
-					#print(f"{ps(all_of_this_users_prices[i])} {ps(s)}")
-					if s["value"] != score["value"] and s["value"] < all_of_this_users_prices[i]["value"]:
-						s_time = datetime.datetime.strptime(s["time"], "%d/%m/%Y-%H:%M").timestamp()
-						#print("Streak Broken. backstepping...")
-						for c, user_score in enumerate(reversed(all_of_this_users_prices)):
-							if user_score["value"] < s["value"]:
-								user_time = user_score["time"]
-								if isinstance(user_score["time"], str):
-									user_time = datetime.datetime.strptime(user_score["time"], "%d/%m/%Y-%H:%M").timestamp()
-								#print(user_time, s["time"])
-								if user_time >= s_time:
-									#print("backstep to", user_score["id"], user_score["value"])
-									i = len(all_of_this_users_prices) - 1 - c
-									score_time = user_time
-									#print(score)
-						found_streak_break = True
-						break
-				if found_streak_break:
-					break
-			score["time"] = score_time
+			
+			t = how_long_user_top(users_scores=all_of_this_users_prices, time_brackets=time_brackets)["time"]
+			score["time"] = datetime.datetime.strptime(t, "%d/%m/%Y-%H:%M").timestamp()
+		
 		scores_for_level_without_duplicates = []
 		
 		# group scores that are "identical"
@@ -387,13 +408,7 @@ def get_oldest_scores_leaderboard(unbroken=False):
 	
 	# sort and rank the scores
 	leaderboard = list(sorted(leaderboard_ranked, key = lambda item: item["time"]))
-	leaderboard_ranked = []
-	for c, score in enumerate(leaderboard):
-		score["time_rank"] = c+1
-		leaderboard_ranked.append(score)
-		if len(leaderboard_ranked) > 1:
-			if score["time"] == leaderboard_ranked[-2]["time"]:
-				leaderboard_ranked[-1]["time_rank"] = leaderboard_ranked[-2]["time_rank"]
+	leaderboard_ranked = compute_oldest_ranks(leaderboard)
 	return leaderboard_ranked
 
 def nice_time_format(seconds):

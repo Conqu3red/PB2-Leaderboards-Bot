@@ -674,9 +674,9 @@ async def weeklyChallenge(ctx, **flags):
 		)
 	
 
-
-
 bot.add_command(weeklyChallenge)
+
+
 @flags.add_flag("--unbreaking", action="store_true", default=False)
 #@flags.add_flag("--user", type=str)
 @flags.add_flag("--level", type=ShortName)
@@ -696,7 +696,7 @@ async def oldest_scores(ctx, **flags):
 	)
 	scores = get_oldest_scores_leaderboard(unbroken=flags["unbreaking"])
 	if level:
-		scores = [score for score in scores if score["level_short_name"] == str(level)]
+		scores = compute_oldest_ranks([score for score in scores if score["level_short_name"] == str(level)])
 		l = all_levels.getByShortName(str(level))
 		if l and flags["uploadhistory"]:
 			data = {

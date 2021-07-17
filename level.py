@@ -141,16 +141,29 @@ class Level:
 
 			old_data_exists = False
 			if (os.path.exists(f"data/{leaderboard_id}.json")):
-				with open(f"data/{leaderboard_id}.json", "r") as cache_file:
-					old_data = json.load(cache_file)
-				old_data_exists = True
+				try:
+					with open(f"data/{leaderboard_id}.json", "r", encoding="utf-8") as cache_file:
+						old_data = json.load(cache_file)
+					old_data_exists = True
+				except json.JSONDecodeError:
+					old_data = {}
 			else:
 				old_data = {}
 			#set rankings
 			top_history_any = old_data.get("any", {}).get("top_history", [])
 			top_history_unbroken = old_data.get("unbroken", {}).get("top_history", [])
 
-			rank_adjusted = {"any":{"top1000":[], "top_history":top_history_any},"unbroken":{"top1000":[], "top_history":top_history_unbroken}}
+			rank_adjusted = {
+				"any":{
+					"top1000": [], 
+					"top_history":top_history_any,
+					"metadata": data.get("any", {}).get("metadata", {})
+				},"unbroken":{
+					"top1000": [], 
+					"top_history": top_history_unbroken, 
+					"metadata": data.get("unbroken", {}).get("metadata", {})
+				}
+			}
 			for referer in ["any", "unbroken"]:
 				#print(referer)
 				for rank, score in enumerate(data[referer]["top1000"]):

@@ -1,3 +1,4 @@
+from functions import create_time_brackets
 import json, datetime, sys
 from copy import deepcopy
 from optparse import OptionParser
@@ -12,7 +13,7 @@ parser.add_option("--unbreaking", default=False, action='store_true', dest='unbr
 
 referer = "unbroken" if options.unbreaking else "any"
 
-with open(f"data/{options.id}.json", "r") as f:
+with open(f"data/{options.id}.json", "r", encoding="utf-8") as f:
 	data = json.load(f)
 if options.cheat:
 	now = datetime.datetime.now()
@@ -25,6 +26,15 @@ if options.clear:
 
 for score in data[referer]["top_history"]:
 	print(f"{score['time']} - {score['value']} {score['owner']['display_name']}")
+
+print()
+brackets = create_time_brackets(data[referer])
+for time, scores in brackets.items():
+	time = datetime.datetime.fromtimestamp(time)
+	print(f"\n{time.strftime('%d/%m/%Y-%H:%M')} --------------------------")
+	for s in scores:
+		print(f"\t\t\t{s['value']} {s['owner']['display_name']}")
+
 if options.cheat or options.clear:
 	with open("data/mAp2V.json", "w") as f:
 		json.dump(data, f)
