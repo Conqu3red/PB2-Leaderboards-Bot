@@ -99,7 +99,7 @@
 2-03c:  b2WwA:  Low Rider                   :58000
 2-04c:  b1p95:  Buggy Bouncer               :15000
 2-05c:  AMmDA:  Rockin'                     :28000
-2-06c:  VJDBA:  Roundabout                  :3000
+2-06c:  VJDBA:  Roundabout                  :30000
 2-07c:  AvMPb:  Double Decker Highway       :90000
 2-08c:  bN5oV:  Split Level                 :39000
 2-09c:  bDzPn:  Anchors Away                :15000
