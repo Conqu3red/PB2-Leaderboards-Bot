@@ -1,0 +1,11 @@
+{
+	"any": {
+		"top1000": [
+			{"id": "score2", "owner": {"id": "user2", "display_name": "user2"}, "value": 200, "didBreak": false, "rank": 2},
+			{"id": "score3", "owner": {"id": "user1", "display_name": "user1"}, "value": 300, "didBreak": false, "rank": 1}
+		]
+	},
+	"unbroken": {
+		"top1000": []
+	}
+}

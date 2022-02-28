@@ -330,7 +330,7 @@ def how_long_user_top(users_scores: list, time_brackets: dict):
 		if any(
 			any(
 				current["value"] <= score["value"] < next_score["value"] and score["owner"]["id"] != current["owner"]["id"] for score in time_brackets[bracket_key]
-			) for bracket_key in time_keys[time_keys.index(string_to_timestamp(current["time"])):time_keys.index(string_to_timestamp(next_score["time"]))] # +1:
+			) for bracket_key in time_keys[time_keys.index(string_to_timestamp(current["time"])) + 1 : time_keys.index(string_to_timestamp(next_score["time"]))] # +1:
 		):
 			# someone beat next_score after it was set, return current
 			return current
@@ -338,7 +338,7 @@ def how_long_user_top(users_scores: list, time_brackets: dict):
 		if any(
 			any(
 				current["value"] <= score["value"] < next_score["value"] and score["owner"]["id"] != current["owner"]["id"] for score in time_brackets[bracket_key]
-			) for bracket_key in time_keys[time_keys.index(string_to_timestamp(next_score["time"])):] # +1:
+			) for bracket_key in time_keys[time_keys.index(string_to_timestamp(next_score["time"])) + 1 :] # +1:
 		):
 			# someone was ahead of the users next_score before they set it, return current
 			return current

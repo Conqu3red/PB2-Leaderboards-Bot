@@ -1,0 +1,36 @@
+{
+	"any": {
+		"top1000": [
+			{"id": "score2", "owner": {"id": "user2", "display_name": "user2"}, "value": 80, "didBreak": false, "rank": 1},
+			{"id": "score1", "owner": {"id": "user1", "display_name": "user1"}, "value": 80, "didBreak": false, "rank": 1}
+		],
+		"top_history": [{"didBreak": false,
+			"id": "score1",
+			"owner": {"display_name": "user1", "id": "user1"},
+			"rank": 1,
+			"time": "24/04/2021-00:00",
+			"value": 100},
+		   {"didBreak": false,
+			"id": "score2",
+			"owner": {"display_name": "user2", "id": "user2"},
+			"rank": 1,
+			"time": "24/04/2021-00:05",
+			"value": 100},
+		   {"didBreak": false,
+			"id": "score3",
+			"owner": {"display_name": "user2", "id": "user2"},
+			"rank": 1,
+			"time": "24/04/2021-00:10",
+			"value": 80},
+		   {"didBreak": false,
+			"id": "score4",
+			"owner": {"display_name": "user1", "id": "user1"},
+			"rank": 1,
+			"time": "24/04/2021-00:10",
+			"value": 80}]
+	},
+	"unbroken": {
+		"top1000": [],
+		"top_history": []
+	}
+}
