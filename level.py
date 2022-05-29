@@ -226,7 +226,7 @@ class Level:
 		try:
 			cache_last_reloaded = os.path.getmtime(f"data/{self.id}.json")
 
-		except FileNotFoundError:
+		except OSError:
 			cache_last_reloaded = 0
 			pass
 		return cache_last_reloaded

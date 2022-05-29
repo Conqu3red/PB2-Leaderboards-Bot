@@ -8,8 +8,8 @@ chardet==3.0.4
 colorama==0.4.3
 cycler==0.10.0
 DateTime==4.3
-discord-ext-menus==1.0.0a26+g84caae8
-discord-flags==2.1.1
+discord-ext-menus==1.1
+alt_discord-flags==0.0.5
 discord.py==1.4.1
 dotenv-python==0.0.1
 idna==2.10
